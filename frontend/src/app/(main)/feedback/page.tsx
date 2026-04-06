@@ -68,9 +68,17 @@ export default function FeedbackPage() {
         if (filters.search) params.search = filters.search;
         if (filters.rating) params.rating = filters.rating;
       }
-      const res = await api.get<PagedResult<FeedbackResponse>>(endpoint, params);
-      if (res.success && res.data) {
-        setData(res.data);
+      if (isAdminOrAbove) {
+        const res = await api.get<PagedResult<FeedbackResponse>>(endpoint, params);
+        if (res.success && res.data) {
+          setData(res.data);
+        }
+      } else {
+        const res = await api.get<FeedbackResponse[]>(endpoint);
+        if (res.success && res.data) {
+          const items = res.data as FeedbackResponse[];
+          setData({ items, totalCount: items.length, page: 1, pageSize: items.length, totalPages: 1 });
+        }
       }
     } finally {
       setLoading(false);
