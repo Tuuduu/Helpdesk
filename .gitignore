@@ -1,0 +1,28 @@
+# Node
+node_modules/
+.next/
+out/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
