@@ -52,7 +52,7 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.ToTable("AboutContents");
                 });
 
-            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Company", b =>
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.AppConfig", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +62,92 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("app_configs", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.CallTypeConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DefaultPriority")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Medium");
+
                     b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("call_type_configs", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Company", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
@@ -72,6 +157,9 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -120,6 +208,56 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.HasIndex("TicketId");
 
                     b.ToTable("feedbacks", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RelatedTicketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("RelatedTicketId");
+
+                    b.HasIndex("RecipientId", "IsRead");
+
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.RefreshToken", b =>
@@ -205,8 +343,8 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
 
                     b.Property<string>("CallType")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("timestamp with time zone");
@@ -315,7 +453,7 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("PerformedById")
+                    b.Property<Guid?>("PerformedById")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TicketId")
@@ -428,6 +566,24 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Ticket", "RelatedTicket")
+                        .WithMany()
+                        .HasForeignKey("RelatedTicketId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("RelatedTicket");
+                });
+
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("BishreltHelpdesk.Domain.Entities.User", "User")
@@ -487,8 +643,7 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.HasOne("BishreltHelpdesk.Domain.Entities.User", "PerformedBy")
                         .WithMany()
                         .HasForeignKey("PerformedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BishreltHelpdesk.Domain.Entities.Ticket", "Ticket")
                         .WithMany("History")

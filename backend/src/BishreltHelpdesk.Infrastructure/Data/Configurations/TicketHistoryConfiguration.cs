@@ -24,7 +24,8 @@ public class TicketHistoryConfiguration : IEntityTypeConfiguration<TicketHistory
         builder.HasOne(h => h.PerformedBy)
             .WithMany()
             .HasForeignKey(h => h.PerformedById)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(h => new { h.TicketId, h.CreatedAt });
     }

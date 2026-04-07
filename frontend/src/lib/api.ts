@@ -129,6 +129,9 @@ async function request<T>(
   }
 
   if (options?.responseType === "blob") {
+    if (!response.ok) {
+      return { success: false, data: null, message: "Файл татахад алдаа гарлаа", errors: [] };
+    }
     const blob = await response.blob();
     return { success: true, data: blob as unknown as T, message: null, errors: [] };
   }

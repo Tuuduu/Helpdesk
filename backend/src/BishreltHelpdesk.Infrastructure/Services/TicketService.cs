@@ -37,6 +37,14 @@ public class TicketService : ITicketService
     {
         var ticketNumber = await _ticketRepository.GenerateTicketNumberAsync();
 
+        // Дуудлагын төрлөөс анхдагч зэрэглэл авах
+        var callTypeConfig = await _context.CallTypeConfigs
+            .FirstOrDefaultAsync(c => c.Code == request.CallType);
+        var priority = callTypeConfig != null
+            && Enum.TryParse<TicketPriority>(callTypeConfig.DefaultPriority, out var parsed)
+            ? parsed
+            : TicketPriority.Medium;
+
         var ticket = new Ticket
         {
             Id = Guid.NewGuid(),
@@ -52,14 +60,14 @@ public class TicketService : ITicketService
             Title = request.Title,
             Description = request.Description,
             Status = TicketStatus.New,
-            Priority = TicketPriority.Medium
+            Priority = priority
         };
 
         var history = new TicketHistory
         {
             Id = Guid.NewGuid(),
             TicketId = ticket.Id,
-            PerformedById = _currentUser.UserId!.Value,
+            PerformedById = _currentUser.UserId,
             Action = "Үүсгэсэн",
             ToValue = TicketStatus.New.ToString(),
             Note = "Тикет шинээр үүсгэгдлээ"
@@ -71,6 +79,61 @@ public class TicketService : ITicketService
         await _unitOfWork.SaveChangesAsync();
 
         return await GetByIdAsync(ticket.Id);
+    }
+
+    public async Task<PublicTicketResponse> CreatePublicAsync(PublicTicketRequest request)
+    {
+        var ticketNumber = await _ticketRepository.GenerateTicketNumberAsync();
+
+        var callTypeConfig = await _context.CallTypeConfigs
+            .FirstOrDefaultAsync(c => c.Code == request.CallType);
+        var priority = callTypeConfig != null
+            && Enum.TryParse<TicketPriority>(callTypeConfig.DefaultPriority, out var parsed)
+            ? parsed
+            : TicketPriority.Medium;
+
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            TicketNumber = ticketNumber,
+            CallType = request.CallType,
+            CompanyId = request.CompanyId,
+            IsGuest = true,
+            RequestedById = null,
+            FullName = request.FullName,
+            Position = request.Position,
+            ComputerNumber = request.ComputerNumber,
+            PhoneNumber = request.PhoneNumber,
+            Title = request.Title,
+            Description = request.Description,
+            Status = TicketStatus.New,
+            Priority = priority
+        };
+
+        var history = new TicketHistory
+        {
+            Id = Guid.NewGuid(),
+            TicketId = ticket.Id,
+            PerformedById = null,
+            Action = "Үүсгэсэн",
+            ToValue = TicketStatus.New.ToString(),
+            Note = "Зочин хэрэглэгч тикет үүсгэсэн"
+        };
+
+        ticket.History.Add(history);
+        await _ticketRepository.AddAsync(ticket);
+        await _unitOfWork.SaveChangesAsync();
+
+        var company = await _context.Companies.FindAsync(request.CompanyId);
+
+        return new PublicTicketResponse
+        {
+            TicketNumber = ticket.TicketNumber,
+            Title = ticket.Title,
+            CompanyName = company?.Name ?? "",
+            Status = ticket.Status.ToString(),
+            CreatedAt = ticket.CreatedAt
+        };
     }
 
     public async Task<TicketResponse> GetByIdAsync(Guid id)
@@ -215,7 +278,7 @@ public class TicketService : ITicketService
         {
             Id = Guid.NewGuid(),
             TicketId = ticket.Id,
-            PerformedById = _currentUser.UserId!.Value,
+            PerformedById = _currentUser.UserId,
             Action = "Төлөв өөрчилсөн",
             FromValue = oldStatus.ToString(),
             ToValue = request.NewStatus.ToString(),
@@ -248,7 +311,7 @@ public class TicketService : ITicketService
         {
             Id = Guid.NewGuid(),
             TicketId = ticket.Id,
-            PerformedById = _currentUser.UserId!.Value,
+            PerformedById = _currentUser.UserId,
             Action = "Хуваарилсан",
             FromValue = oldAssignee,
             ToValue = engineer.FullName,
@@ -278,7 +341,7 @@ public class TicketService : ITicketService
             TicketNumber = t.TicketNumber,
             Title = t.Title,
             Description = t.Description,
-            CallType = t.CallType.ToString(),
+            CallType = t.CallType,
             CompanyName = t.Company?.Name ?? "",
             FullName = t.FullName,
             Position = t.Position,

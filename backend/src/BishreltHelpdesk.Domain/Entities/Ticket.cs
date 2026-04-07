@@ -5,7 +5,7 @@ namespace BishreltHelpdesk.Domain.Entities;
 public class Ticket : BaseEntity
 {
     public string TicketNumber { get; set; } = string.Empty;
-    public CallType CallType { get; set; }
+    public string CallType { get; set; } = string.Empty;
     public Guid CompanyId { get; set; }
 
     // Requester info (snapshot at creation)

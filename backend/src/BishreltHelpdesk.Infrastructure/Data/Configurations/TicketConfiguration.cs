@@ -34,8 +34,8 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .HasDefaultValue(TicketPriority.Medium);
 
         builder.Property(t => t.CallType)
-            .HasConversion<string>()
-            .HasMaxLength(30);
+            .HasMaxLength(50)
+            .IsRequired();
 
         // Relationships
         builder.HasOne(t => t.Company)

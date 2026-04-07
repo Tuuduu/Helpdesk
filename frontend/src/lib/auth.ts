@@ -1,5 +1,5 @@
 import { api, setAccessToken } from "./api";
-import type { LoginRequest, LoginResponse, AuthUser } from "@/types/auth";
+import type { LoginRequest, LoginResponse, AuthUser, RegisterRequest } from "@/types/auth";
 import type { ApiResponse } from "@/types/api";
 
 function setAuthCookie(value: boolean) {
@@ -15,6 +15,20 @@ export async function loginUser(
   credentials: LoginRequest
 ): Promise<ApiResponse<LoginResponse>> {
   const response = await api.post<LoginResponse>("/auth/login", credentials);
+
+  if (response.success && response.data) {
+    setAccessToken(response.data.accessToken);
+    localStorage.setItem("refreshToken", response.data.refreshToken);
+    setAuthCookie(true);
+  }
+
+  return response;
+}
+
+export async function registerUser(
+  data: RegisterRequest
+): Promise<ApiResponse<LoginResponse>> {
+  const response = await api.post<LoginResponse>("/auth/register", data);
 
   if (response.success && response.data) {
     setAccessToken(response.data.accessToken);

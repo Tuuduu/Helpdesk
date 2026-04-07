@@ -5,7 +5,7 @@ namespace BishreltHelpdesk.Application.DTOs.Tickets;
 
 public class CreateTicketRequest
 {
-    public CallType CallType { get; set; }
+    public string CallType { get; set; } = string.Empty;
     public Guid CompanyId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? Position { get; set; }

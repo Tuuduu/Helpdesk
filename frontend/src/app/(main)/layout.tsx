@@ -28,7 +28,7 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-base">
+    <div className="flex h-screen overflow-hidden" style={{ background: "var(--body-bg)" }}>
       <Sidebar />
       <MobileNav />
       <main

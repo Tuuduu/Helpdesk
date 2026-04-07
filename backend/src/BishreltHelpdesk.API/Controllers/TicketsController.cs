@@ -43,6 +43,14 @@ public class TicketsController : ControllerBase
             ApiResponse<TicketResponse>.Ok(result, "Тикет амжилттай үүсгэлээ"));
     }
 
+    [HttpPost("public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CreatePublic([FromBody] PublicTicketRequest request)
+    {
+        var result = await _ticketService.CreatePublicAsync(request);
+        return Ok(ApiResponse<PublicTicketResponse>.Ok(result, "Тикет амжилттай бүртгэгдлээ"));
+    }
+
     [HttpPatch("{id:guid}/status")]
     [Authorize(Policy = Policies.AdminOrAbove)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTicketStatusRequest request)

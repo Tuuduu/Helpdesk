@@ -27,6 +27,21 @@ public static class DataSeeder
             throw;
         }
 
+        // Seed CallTypeConfigs independently (may run after initial seed)
+        if (!await context.CallTypeConfigs.AnyAsync())
+        {
+            var callTypes = new[]
+            {
+                new CallTypeConfig { Id = Guid.NewGuid(), Code = "PhoneCall", Label = "Утасны дуудлага", IsActive = true, SortOrder = 0 },
+                new CallTypeConfig { Id = Guid.NewGuid(), Code = "Email",     Label = "Имэйл",           IsActive = true, SortOrder = 1 },
+                new CallTypeConfig { Id = Guid.NewGuid(), Code = "WalkIn",    Label = "Биечлэн",         IsActive = true, SortOrder = 2 },
+                new CallTypeConfig { Id = Guid.NewGuid(), Code = "Remote",    Label = "Зайнаас",         IsActive = true, SortOrder = 3 },
+            };
+            await context.CallTypeConfigs.AddRangeAsync(callTypes);
+            await context.SaveChangesAsync();
+            logger.LogInformation("CallTypeConfigs seeded");
+        }
+
         if (await context.Companies.AnyAsync())
         {
             logger.LogInformation("Database already seeded");
@@ -106,5 +121,21 @@ public static class DataSeeder
 
         await context.SaveChangesAsync();
         logger.LogInformation("Database seeded successfully");
+
+        await SeedBrandingAsync(context);
+    }
+
+    private static async Task SeedBrandingAsync(AppDbContext context)
+    {
+        if (!await context.AppConfigs.AnyAsync())
+        {
+            var now = DateTime.UtcNow;
+            await context.AppConfigs.AddRangeAsync(
+                new AppConfig { Id = Guid.NewGuid(), Key = "company_name",     Value = "BISHRELT", CreatedAt = now, UpdatedAt = now },
+                new AppConfig { Id = Guid.NewGuid(), Key = "company_subtitle", Value = "GROUP",    CreatedAt = now, UpdatedAt = now },
+                new AppConfig { Id = Guid.NewGuid(), Key = "logo_text",        Value = "BG",       CreatedAt = now, UpdatedAt = now }
+            );
+            await context.SaveChangesAsync();
+        }
     }
 }

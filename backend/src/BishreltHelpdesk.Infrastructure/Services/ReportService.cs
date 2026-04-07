@@ -103,10 +103,16 @@ public class ReportService : IReportService
             .AsQueryable();
 
         if (filter.DateFrom.HasValue)
-            query = query.Where(t => t.CreatedAt >= filter.DateFrom.Value);
+        {
+            var from = DateTime.SpecifyKind(filter.DateFrom.Value.Date, DateTimeKind.Utc);
+            query = query.Where(t => t.CreatedAt >= from);
+        }
 
         if (filter.DateTo.HasValue)
-            query = query.Where(t => t.CreatedAt <= filter.DateTo.Value);
+        {
+            var to = DateTime.SpecifyKind(filter.DateTo.Value.Date.AddDays(1), DateTimeKind.Utc);
+            query = query.Where(t => t.CreatedAt < to);
+        }
 
         if (filter.EngineerId.HasValue)
             query = query.Where(t => t.AssignedToId == filter.EngineerId.Value);

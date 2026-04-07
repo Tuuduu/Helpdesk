@@ -6,6 +6,7 @@ namespace BishreltHelpdesk.Application.Interfaces;
 public interface ITicketService
 {
     Task<TicketResponse> CreateAsync(CreateTicketRequest request);
+    Task<PublicTicketResponse> CreatePublicAsync(PublicTicketRequest request);
     Task<TicketResponse> GetByIdAsync(Guid id);
     Task<PagedResult<TicketListItem>> GetListAsync(TicketFilterRequest filter);
     Task<PagedResult<TicketListItem>> GetMyTicketsAsync(Guid userId, PagedRequest request);

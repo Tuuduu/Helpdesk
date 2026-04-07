@@ -28,3 +28,13 @@ export interface AuthUser {
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  fullName: string;
+  companyId: string;
+  position?: string;
+  phoneNumber?: string;
+  computerNumber?: string;
+}

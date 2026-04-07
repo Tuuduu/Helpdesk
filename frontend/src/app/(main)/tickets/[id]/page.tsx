@@ -10,6 +10,8 @@ import {
   Monitor,
   Briefcase,
   UserCheck,
+  Star,
+  CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -34,6 +36,7 @@ import {
   Spinner,
 } from "@/components/ui";
 import type { TicketResponse, TicketHistoryItem } from "@/types/ticket";
+import type { FeedbackResponse } from "@/types/feedback";
 import toast from "react-hot-toast";
 
 interface EngineerOption {
@@ -54,7 +57,7 @@ export default function TicketDetailPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const { isAdminOrAbove } = useAuth();
+  const { isAdminOrAbove, isUser } = useAuth();
 
   const [ticket, setTicket] = useState<TicketResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -279,6 +282,13 @@ export default function TicketDetailPage({
         </div>
       </div>
 
+      {/* Feedback panel — shown when ticket is Closed */}
+      {ticket.status === "Closed" && (
+        <div className="mt-6">
+          <FeedbackPanel ticketId={ticket.id} isUser={isUser} />
+        </div>
+      )}
+
       {/* Status update modal */}
       <Modal
         open={statusModalOpen}
@@ -421,5 +431,155 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <span className="text-gray-500">{label}</span>
       <span className="text-gray-700 font-medium">{value}</span>
     </div>
+  );
+}
+
+// ── Feedback Panel ──────────────────────────────────────────────────
+
+function StarRating({
+  value,
+  onChange,
+  readonly = false,
+}: {
+  value: number;
+  onChange?: (v: number) => void;
+  readonly?: boolean;
+}) {
+  const [hovered, setHovered] = useState(0);
+  const active = hovered || value;
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          disabled={readonly}
+          onClick={() => !readonly && onChange?.(n)}
+          onMouseEnter={() => !readonly && setHovered(n)}
+          onMouseLeave={() => !readonly && setHovered(0)}
+          className={readonly ? "cursor-default" : "cursor-pointer"}
+        >
+          <Star
+            className={`w-8 h-8 transition-colors ${
+              n <= active
+                ? "fill-yellow-400 text-yellow-400"
+                : "fill-gray-200 text-gray-200"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const RATING_LABELS: Record<number, string> = {
+  1: "Маш муу",
+  2: "Муу",
+  3: "Дундаж",
+  4: "Сайн",
+  5: "Маш сайн",
+};
+
+function FeedbackPanel({
+  ticketId,
+  isUser,
+}: {
+  ticketId: string;
+  isUser: boolean;
+}) {
+  const [existing, setExisting] = useState<FeedbackResponse | null | undefined>(undefined);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    api.get<FeedbackResponse | null>(`/feedback/ticket/${ticketId}`).then((res) => {
+      if (res.success) setExisting(res.data ?? null);
+    });
+  }, [ticketId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating === 0) {
+      toast.error("Үнэлгээ өгнө үү");
+      return;
+    }
+    setSubmitting(true);
+    const res = await api.post<FeedbackResponse>("/feedback", {
+      ticketId,
+      rating,
+      comment: comment || undefined,
+    });
+    if (res.success && res.data) {
+      setExisting(res.data);
+      toast.success("Үнэлгээ амжилттай илгээгдлээ");
+    } else {
+      toast.error(res.errors?.[0] || res.message || "Алдаа гарлаа");
+    }
+    setSubmitting(false);
+  };
+
+  // Loading
+  if (existing === undefined) return null;
+
+  // Already submitted — show read-only
+  if (existing !== null) {
+    return (
+      <GlassPanel>
+        <div className="flex items-center gap-2 mb-4">
+          <CheckCircle2 className="w-5 h-5 text-green-500" />
+          <h3 className="text-sm font-semibold text-gray-900">Таны үнэлгээ</h3>
+        </div>
+        <div className="flex flex-col items-center gap-3 py-2">
+          <StarRating value={existing.rating} readonly />
+          <p className="text-sm font-medium text-gray-700">
+            {RATING_LABELS[existing.rating]}
+          </p>
+          {existing.comment && (
+            <p className="text-sm text-gray-500 text-center max-w-md">
+              "{existing.comment}"
+            </p>
+          )}
+          <p className="text-xs text-gray-400">{formatDateTime(existing.createdAt)}</p>
+        </div>
+      </GlassPanel>
+    );
+  }
+
+  // Not yet submitted — show form only for User role
+  if (!isUser) return null;
+
+  return (
+    <GlassPanel>
+      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+        Үйлчилгээний үнэлгээ
+      </h3>
+      <p className="text-xs text-gray-500 mb-5">
+        Манай үйлчилгээнд дүгнэлт өгснөөр бид цаашид илүү сайжирч чадна.
+      </p>
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-col items-center gap-3 mb-5">
+          <StarRating value={rating} onChange={setRating} />
+          {rating > 0 && (
+            <p className="text-sm font-medium text-gray-600">
+              {RATING_LABELS[rating]}
+            </p>
+          )}
+        </div>
+        <Textarea
+          label="Сэтгэгдэл (заавал биш)"
+          placeholder="Үйлчилгээний талаар дэлгэрэнгүй бичнэ үү..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={3}
+        />
+        <div className="mt-4">
+          <Button type="submit" loading={submitting} disabled={rating === 0}>
+            Үнэлгээ илгээх
+          </Button>
+        </div>
+      </form>
+    </GlassPanel>
   );
 }

@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Info,
   UserCircle,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -107,6 +108,12 @@ export const SIDEBAR_NAV: NavItem[] = [
     path: "/feedback",
     icon: MessageSquare,
     roles: ["SuperAdmin", "Admin", "User"],
+  },
+  {
+    label: "Тохиргоо",
+    path: "/settings",
+    icon: Settings,
+    roles: ["SuperAdmin", "Admin"],
   },
   {
     label: "Тухай",

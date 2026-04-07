@@ -1,8 +1,8 @@
-import type { TicketStatus, TicketPriority, CallType } from "@/lib/constants";
+import type { TicketStatus, TicketPriority } from "@/lib/constants";
 import type { PagedRequest } from "./api";
 
 export interface CreateTicketRequest {
-  callType: CallType;
+  callType: string;
   companyId: string;
   fullName: string;
   position?: string;
@@ -35,7 +35,7 @@ export interface TicketListItem {
 }
 
 export interface TicketResponse extends TicketListItem {
-  callType: CallType;
+  callType: string;
   description: string;
   phoneNumber: string;
   position?: string;

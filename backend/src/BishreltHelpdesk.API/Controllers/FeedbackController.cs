@@ -33,6 +33,13 @@ public class FeedbackController : ControllerBase
         return Ok(ApiResponse<PagedResult<FeedbackResponse>>.Ok(result));
     }
 
+    [HttpGet("ticket/{ticketId:guid}")]
+    public async Task<IActionResult> GetForTicket(Guid ticketId)
+    {
+        var result = await _feedbackService.GetForTicketAsync(ticketId);
+        return Ok(ApiResponse<FeedbackResponse?>.Ok(result));
+    }
+
     [HttpGet("my")]
     public async Task<IActionResult> GetMyFeedback()
     {

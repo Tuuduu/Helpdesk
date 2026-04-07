@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
-import { CALL_TYPE_LABELS, type CallType } from "@/lib/constants";
+import { CALL_TYPE_LABELS, TICKET_PRIORITY_LABELS, TICKET_PRIORITY_COLORS, type TicketPriority } from "@/lib/constants";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
   GlassPanel,
@@ -22,18 +22,22 @@ interface CompanyOption {
   name: string;
 }
 
-const CALL_TYPE_OPTIONS = Object.entries(CALL_TYPE_LABELS).map(
-  ([value, label]) => ({ value, label })
-);
+interface CallTypeOption {
+  value: string;
+  label: string;
+  defaultPriority: string;
+}
 
 export default function TicketCreatePage() {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [callTypeOptions, setCallTypeOptions] = useState<CallTypeOption[]>([]);
+  const [autoPriority, setAutoPriority] = useState("Medium");
 
   const [isGuest, setIsGuest] = useState(false);
-  const [callType, setCallType] = useState<CallType>("PhoneCall");
+  const [callType, setCallType] = useState("");
   const [companyId, setCompanyId] = useState(user?.companyId ?? "");
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [position, setPosition] = useState(user?.position ?? "");
@@ -43,13 +47,33 @@ export default function TicketCreatePage() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    async function loadCompanies() {
-      const res = await api.get<CompanyOption[]>("/companies");
-      if (res.success && res.data) {
-        setCompanies(res.data);
+    async function loadOptions() {
+      const [compRes, ctRes] = await Promise.all([
+        api.get<CompanyOption[]>("/companies"),
+        api.get<{ code: string; label: string; defaultPriority: string }[]>("/settings/call-types/active"),
+      ]);
+      if (compRes.success && compRes.data) setCompanies(compRes.data);
+      if (ctRes.success && ctRes.data) {
+        const opts = ctRes.data.map((ct) => ({
+          value: ct.code,
+          label: ct.label,
+          defaultPriority: ct.defaultPriority ?? "Medium",
+        }));
+        setCallTypeOptions(opts);
+        if (opts.length > 0) {
+          setCallType(opts[0].value);
+          setAutoPriority(opts[0].defaultPriority);
+        }
+      } else {
+        const fallback = Object.entries(CALL_TYPE_LABELS).map(([value, label]) => ({
+          value, label, defaultPriority: "Medium",
+        }));
+        setCallTypeOptions(fallback);
+        setCallType(fallback[0]?.value ?? "");
+        setAutoPriority("Medium");
       }
     }
-    loadCompanies();
+    loadOptions();
   }, []);
 
   // Pre-fill from logged-in user when not guest
@@ -126,13 +150,27 @@ export default function TicketCreatePage() {
                 </span>
               </label>
 
-              <Select
-                label="Дуудлагын төрөл"
-                options={CALL_TYPE_OPTIONS}
-                value={callType}
-                onChange={(e) => setCallType(e.target.value as CallType)}
-                required
-              />
+              <div>
+                <Select
+                  label="Дуудлагын төрөл"
+                  options={callTypeOptions}
+                  value={callType}
+                  onChange={(e) => {
+                    setCallType(e.target.value);
+                    const selected = callTypeOptions.find((o) => o.value === e.target.value);
+                    if (selected) setAutoPriority(selected.defaultPriority);
+                  }}
+                  required
+                />
+                {autoPriority && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500">
+                    Анхдагч зэрэглэл:
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${TICKET_PRIORITY_COLORS[autoPriority as TicketPriority] ?? ""}`}>
+                      {TICKET_PRIORITY_LABELS[autoPriority as TicketPriority] ?? autoPriority}
+                    </span>
+                  </p>
+                )}
+              </div>
 
               {companies.length > 0 && (
                 <Select

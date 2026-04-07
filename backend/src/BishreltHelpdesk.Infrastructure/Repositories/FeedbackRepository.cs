@@ -18,6 +18,12 @@ public class FeedbackRepository : Repository<Feedback>, IFeedbackRepository
             .ToListAsync();
     }
 
+    public async Task<Feedback?> GetByTicketAndUserAsync(Guid ticketId, Guid userId)
+    {
+        return await _context.Feedbacks
+            .FirstOrDefaultAsync(f => f.TicketId == ticketId && f.SubmittedById == userId);
+    }
+
     public IQueryable<Feedback> QueryWithIncludes()
     {
         return _context.Feedbacks

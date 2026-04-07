@@ -49,7 +49,7 @@ export function UserMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-60 glass-elevated p-2 animate-scale-in origin-top-right">
+        <div className="absolute right-0 mt-2 w-60 glass-elevated p-2 animate-scale-in origin-top-right" style={{ zIndex: 9999 }}>
           {/* User info */}
           <div className="px-3 py-2.5 border-b border-gray-100 mb-1">
             <p className="text-sm font-semibold text-gray-900">

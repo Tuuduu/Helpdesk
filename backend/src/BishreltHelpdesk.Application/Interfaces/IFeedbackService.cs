@@ -6,6 +6,7 @@ namespace BishreltHelpdesk.Application.Interfaces;
 public interface IFeedbackService
 {
     Task<FeedbackResponse> CreateAsync(CreateFeedbackRequest request);
+    Task<FeedbackResponse?> GetForTicketAsync(Guid ticketId);
     Task<PagedResult<FeedbackResponse>> GetListAsync(FeedbackFilterRequest filter);
     Task<List<FeedbackResponse>> GetMyFeedbacksAsync(Guid userId);
 }

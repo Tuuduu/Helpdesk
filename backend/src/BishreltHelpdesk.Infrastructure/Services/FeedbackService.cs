@@ -2,6 +2,7 @@ using BishreltHelpdesk.Application.DTOs.Common;
 using BishreltHelpdesk.Application.DTOs.Feedback;
 using BishreltHelpdesk.Application.Interfaces;
 using BishreltHelpdesk.Domain.Entities;
+using BishreltHelpdesk.Domain.Enums;
 using BishreltHelpdesk.Domain.Exceptions;
 using BishreltHelpdesk.Domain.Interfaces;
 using BishreltHelpdesk.Domain.Interfaces.Repositories;
@@ -15,17 +16,20 @@ public class FeedbackService : IFeedbackService
     private readonly ITicketRepository _ticketRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notificationService;
 
     public FeedbackService(
         IFeedbackRepository feedbackRepository,
         ITicketRepository ticketRepository,
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        INotificationService notificationService)
     {
         _feedbackRepository = feedbackRepository;
         _ticketRepository = ticketRepository;
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _notificationService = notificationService;
     }
 
     public async Task<FeedbackResponse> CreateAsync(CreateFeedbackRequest request)
@@ -33,8 +37,18 @@ public class FeedbackService : IFeedbackService
         var ticket = await _ticketRepository.GetByIdAsync(request.TicketId)
             ?? throw new NotFoundException("Тикет олдсонгүй");
 
+        if (ticket.Status != TicketStatus.Closed)
+            throw new BadRequestException("Зөвхөн хаагдсан тикетэд үнэлгээ өгч болно");
+
         if (request.Rating < 1 || request.Rating > 5)
             throw new BadRequestException("Үнэлгээ 1-5 хооронд байх ёстой");
+
+        if (_currentUser.UserId.HasValue)
+        {
+            var existing = await _feedbackRepository.GetByTicketAndUserAsync(request.TicketId, _currentUser.UserId.Value);
+            if (existing != null)
+                throw new BadRequestException("Та энэ тикетэд аль хэдийн үнэлгээ өгсөн байна");
+        }
 
         var feedback = new Feedback
         {
@@ -49,6 +63,20 @@ public class FeedbackService : IFeedbackService
         await _feedbackRepository.AddAsync(feedback);
         await _unitOfWork.SaveChangesAsync();
 
+        // Notify the assigned engineer
+        if (ticket.AssignedToId.HasValue)
+        {
+            var stars = new string('★', request.Rating) + new string('☆', 5 - request.Rating);
+            var submitterName = request.GuestName ?? _currentUser.UserId?.ToString() ?? "Хэрэглэгч";
+            await _notificationService.CreateAsync(
+                recipientId: ticket.AssignedToId.Value,
+                title: "Шинэ үнэлгээ ирлээ",
+                message: $"{ticket.TicketNumber} тикетэд {stars} ({request.Rating}/5) үнэлгээ өгөгдлөө",
+                type: "Feedback",
+                relatedTicketId: ticket.Id
+            );
+        }
+
         return new FeedbackResponse
         {
             Id = feedback.Id,
@@ -57,6 +85,28 @@ public class FeedbackService : IFeedbackService
             TicketTitle = ticket.Title,
             SubmittedByName = null,
             GuestName = request.GuestName,
+            Rating = feedback.Rating,
+            Comment = feedback.Comment,
+            CreatedAt = feedback.CreatedAt
+        };
+    }
+
+    public async Task<FeedbackResponse?> GetForTicketAsync(Guid ticketId)
+    {
+        if (!_currentUser.UserId.HasValue) return null;
+
+        var feedback = await _feedbackRepository.GetByTicketAndUserAsync(ticketId, _currentUser.UserId.Value);
+        if (feedback == null) return null;
+
+        var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+        return new FeedbackResponse
+        {
+            Id = feedback.Id,
+            TicketId = feedback.TicketId,
+            TicketNumber = ticket?.TicketNumber ?? "",
+            TicketTitle = ticket?.Title ?? "",
+            SubmittedByName = null,
+            GuestName = feedback.GuestName,
             Rating = feedback.Rating,
             Comment = feedback.Comment,
             CreatedAt = feedback.CreatedAt
