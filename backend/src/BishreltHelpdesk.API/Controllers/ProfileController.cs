@@ -37,21 +37,7 @@ public class ProfileController : ControllerBase
     {
         var user = await GetCurrentUser();
 
-        var profile = new UserInfo
-        {
-            Id = user.Id,
-            Email = user.Email,
-            FullName = user.FullName,
-            Role = user.Role.ToString(),
-            CompanyId = user.CompanyId,
-            CompanyName = user.Company?.Name ?? "",
-            Position = user.Position,
-            PhoneNumber = user.PhoneNumber,
-            ComputerNumber = user.ComputerNumber,
-            AvatarUrl = user.AvatarUrl
-        };
-
-        return Ok(ApiResponse<UserInfo>.Ok(profile));
+        return Ok(ApiResponse<UserInfo>.Ok(MapToUserInfo(user)));
     }
 
     [HttpPut]
@@ -64,29 +50,38 @@ public class ProfileController : ControllerBase
         if (request.PhoneNumber != null) user.PhoneNumber = request.PhoneNumber;
         if (request.ComputerNumber != null) user.ComputerNumber = request.ComputerNumber;
 
+        // DepartmentId: explicitly handle empty Guid as "clear", real Guid as "set"
+        if (request.DepartmentId.HasValue)
+        {
+            user.DepartmentId = request.DepartmentId.Value == Guid.Empty
+                ? null
+                : request.DepartmentId.Value;
+        }
+
         _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync();
 
-        // Reload with company
         var updated = await _userRepository.GetByEmailAsync(user.Email)
             ?? throw new NotFoundException("Хэрэглэгч олдсонгүй");
 
-        var profile = new UserInfo
-        {
-            Id = updated.Id,
-            Email = updated.Email,
-            FullName = updated.FullName,
-            Role = updated.Role.ToString(),
-            CompanyId = updated.CompanyId,
-            CompanyName = updated.Company?.Name ?? "",
-            Position = updated.Position,
-            PhoneNumber = updated.PhoneNumber,
-            ComputerNumber = updated.ComputerNumber,
-            AvatarUrl = updated.AvatarUrl
-        };
-
-        return Ok(ApiResponse<UserInfo>.Ok(profile, "Профайл амжилттай шинэчлэгдлээ"));
+        return Ok(ApiResponse<UserInfo>.Ok(MapToUserInfo(updated), "Профайл амжилттай шинэчлэгдлээ"));
     }
+
+    private static UserInfo MapToUserInfo(Domain.Entities.User user) => new()
+    {
+        Id = user.Id,
+        Email = user.Email,
+        FullName = user.FullName,
+        Role = user.Role.ToString(),
+        CompanyId = user.CompanyId,
+        CompanyName = user.Company?.Name ?? "",
+        DepartmentId = user.DepartmentId,
+        DepartmentName = user.Department?.Name,
+        Position = user.Position,
+        PhoneNumber = user.PhoneNumber,
+        ComputerNumber = user.ComputerNumber,
+        AvatarUrl = user.AvatarUrl
+    };
 
     [HttpPut("password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)

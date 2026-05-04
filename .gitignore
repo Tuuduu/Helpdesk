@@ -26,3 +26,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Uploaded files (computer asset images, etc.)
+**/wwwroot/uploads/

@@ -41,6 +41,8 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IComputerRepository, ComputerRepository>();
+builder.Services.AddScoped<IComputerTransferRequestRepository, ComputerTransferRequestRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // ──────────────────────────────────────────────
@@ -54,6 +56,12 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAboutService, AboutService>();
+builder.Services.AddScoped<IComputerService, ComputerService>();
+builder.Services.AddScoped<IComputerTransferService, ComputerTransferService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<ITransferWorkflowService, TransferWorkflowService>();
+builder.Services.AddScoped<IComputerProcessService, ComputerProcessService>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -100,6 +108,11 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(Policies.AdminOrAbove, policy =>
         policy.RequireClaim("role",
             UserRole.Admin.ToString(),
+            UserRole.SuperAdmin.ToString()));
+
+    options.AddPolicy(Policies.ITStorekeeperOnly, policy =>
+        policy.RequireClaim("role",
+            UserRole.ITStorekeeper.ToString(),
             UserRole.SuperAdmin.ToString()));
 
     options.AddPolicy(Policies.Authenticated, policy =>
@@ -187,6 +200,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

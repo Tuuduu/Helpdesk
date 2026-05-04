@@ -33,6 +33,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(u => u.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(u => u.Department)
+            .WithMany(d => d.Users)
+            .HasForeignKey(u => u.DepartmentId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(u => new { u.CompanyId, u.Role });
     }
 }

@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Plus, Pencil, Trash2, Building2, Phone, Palette, Sun, Moon, Monitor,
+  Plus, Pencil, Trash2, Building2, Phone, Palette, Sun, Moon, Monitor, Users as UsersIcon, ArrowLeftRight,
 } from "lucide-react";
+import { DepartmentsTab } from "@/components/settings/DepartmentsTab";
+import { TransferWorkflowTab } from "@/components/settings/TransferWorkflowTab";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/components/shared/RoleGuard";
@@ -47,7 +49,7 @@ interface Company {
   createdAt: string;
 }
 
-type Tab = "companies" | "callTypes" | "branding" | "appearance";
+type Tab = "companies" | "departments" | "transferWorkflow" | "callTypes" | "branding" | "appearance";
 
 // ── Main page ──────────────────────────────────────────────────────
 
@@ -55,12 +57,15 @@ export default function SettingsPage() {
   const { isSuperAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("companies");
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode; superAdminOnly?: boolean }[] = [
-    { id: "companies",   label: "Компаниуд",      icon: <Building2 className="w-4 h-4" /> },
-    { id: "callTypes",   label: "Дуудлагын төрөл", icon: <Phone className="w-4 h-4" /> },
-    { id: "appearance",  label: "Харагдах байдал", icon: <Palette className="w-4 h-4" /> },
-    { id: "branding",    label: "Брэнд",           icon: <Monitor className="w-4 h-4" />, superAdminOnly: true },
-  ].filter(t => !t.superAdminOnly || isSuperAdmin);
+  const allTabs: { id: Tab; label: string; icon: React.ReactNode; superAdminOnly?: boolean }[] = [
+    { id: "companies" as Tab,   label: "Компаниуд",      icon: <Building2 className="w-4 h-4" /> },
+    { id: "departments" as Tab, label: "Хэлтэс",          icon: <UsersIcon className="w-4 h-4" /> },
+    { id: "transferWorkflow" as Tab, label: "Шилжүүлгийн урсгал", icon: <ArrowLeftRight className="w-4 h-4" /> },
+    { id: "callTypes" as Tab,   label: "Дуудлагын төрөл", icon: <Phone className="w-4 h-4" /> },
+    { id: "appearance" as Tab,  label: "Харагдах байдал", icon: <Palette className="w-4 h-4" /> },
+    { id: "branding" as Tab,    label: "Брэнд",           icon: <Monitor className="w-4 h-4" />, superAdminOnly: true },
+  ];
+  const tabs = allTabs.filter(t => !t.superAdminOnly || isSuperAdmin);
 
   return (
     <RoleGuard roles={["SuperAdmin", "Admin"]}>
@@ -85,6 +90,8 @@ export default function SettingsPage() {
       </div>
 
       {activeTab === "companies"  && <CompaniesTab />}
+      {activeTab === "departments" && <DepartmentsTab />}
+      {activeTab === "transferWorkflow" && <TransferWorkflowTab />}
       {activeTab === "callTypes"  && <CallTypesTab />}
       {activeTab === "appearance" && <AppearanceTab />}
       {activeTab === "branding"   && isSuperAdmin && <BrandingTab />}

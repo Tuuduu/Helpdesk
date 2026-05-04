@@ -26,6 +26,11 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasForeignKey(n => n.RelatedTicketId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(n => n.RelatedTransfer)
+            .WithMany()
+            .HasForeignKey(n => n.RelatedTransferId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(n => new { n.RecipientId, n.IsRead });
         builder.HasIndex(n => n.CreatedAt);
     }

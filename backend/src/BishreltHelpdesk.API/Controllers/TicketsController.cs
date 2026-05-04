@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using BishreltHelpdesk.API.Authorization;
 using BishreltHelpdesk.Application.DTOs.Common;
 using BishreltHelpdesk.Application.DTOs.Tickets;
 using BishreltHelpdesk.Application.Interfaces;
+using BishreltHelpdesk.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +14,12 @@ namespace BishreltHelpdesk.API.Controllers;
 public class TicketsController : ControllerBase
 {
     private readonly ITicketService _ticketService;
+    private readonly ICurrentUserService _currentUser;
 
-    public TicketsController(ITicketService ticketService)
+    public TicketsController(ITicketService ticketService, ICurrentUserService currentUser)
     {
         _ticketService = ticketService;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
@@ -78,7 +80,8 @@ public class TicketsController : ControllerBase
     [HttpGet("my")]
     public async Task<IActionResult> GetMyTickets([FromQuery] PagedRequest request)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = _currentUser.UserId
+            ?? throw new UnauthorizedAccessException();
         var result = await _ticketService.GetMyTicketsAsync(userId, request);
         return Ok(ApiResponse<PagedResult<TicketListItem>>.Ok(result));
     }

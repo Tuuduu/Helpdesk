@@ -55,6 +55,7 @@ public class TicketService : ITicketService
             RequestedById = request.IsGuest ? null : _currentUser.UserId,
             FullName = request.FullName,
             Position = request.Position,
+            Department = request.Department,
             ComputerNumber = request.ComputerNumber,
             PhoneNumber = request.PhoneNumber,
             Title = request.Title,
@@ -296,6 +297,17 @@ public class TicketService : ITicketService
         var ticket = await _ticketRepository.GetWithDetailsAsync(id)
             ?? throw new NotFoundException("Тикет олдсонгүй");
 
+        // Admin (not SuperAdmin) can only assign tickets that are currently unassigned,
+        // and may only assign them to themselves. SuperAdmin can reassign freely.
+        if (_currentUser.Role == UserRole.Admin)
+        {
+            if (ticket.AssignedToId.HasValue && ticket.AssignedToId != _currentUser.UserId)
+                throw new BadRequestException("Энэ тикет өөр хүнд хуваарилагдсан байна");
+
+            if (request.AssignToId != _currentUser.UserId)
+                throw new BadRequestException("Та зөвхөн өөртөө хуваарилах боломжтой");
+        }
+
         var engineer = await _userRepository.GetByIdAsync(request.AssignToId)
             ?? throw new NotFoundException("Инженер олдсонгүй");
 
@@ -345,11 +357,13 @@ public class TicketService : ITicketService
             CompanyName = t.Company?.Name ?? "",
             FullName = t.FullName,
             Position = t.Position,
+            Department = t.Department,
             ComputerNumber = t.ComputerNumber,
             PhoneNumber = t.PhoneNumber,
             IsGuest = t.IsGuest,
             Status = t.Status.ToString(),
             Priority = t.Priority.ToString(),
+            AssignedToId = t.AssignedToId,
             AssignedToName = t.AssignedTo?.FullName,
             ClosedByName = t.ClosedBy?.FullName,
             ClosedAt = t.ClosedAt,

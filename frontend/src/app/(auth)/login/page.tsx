@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, User, Phone, Monitor, Briefcase, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
+import { getDefaultPathForRole } from "@/lib/utils";
 import { GlassPanel, Button, Input, Select, Textarea } from "@/components/ui";
 import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
@@ -17,12 +18,17 @@ interface PublicTicketResponse { ticketNumber: string; title: string; companyNam
 type Tab = "login" | "ticket";
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, role } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("login");
 
+  useEffect(() => {
+    if (isAuthenticated && role) {
+      router.push(getDefaultPathForRole(role));
+    }
+  }, [isAuthenticated, role, router]);
+
   if (isAuthenticated) {
-    router.push("/dashboard");
     return null;
   }
 
@@ -83,14 +89,19 @@ function LoginForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const result = await login({ email, password });
-    if (result.success) {
-      toast.success("Амжилттай нэвтэрлээ");
-      router.push("/dashboard");
-    } else {
-      toast.error(result.error || "Нэвтрэх амжилтгүй");
+    try {
+      const result = await login({ email, password });
+      if (result.success) {
+        toast.success("Амжилттай нэвтэрлээ");
+        router.push(getDefaultPathForRole(result.role));
+      } else {
+        toast.error(result.error || "Нэвтрэх амжилтгүй");
+      }
+    } catch {
+      toast.error("Сервертэй холбогдож чадсангүй. Дахин оролдоно уу.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

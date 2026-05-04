@@ -2,27 +2,39 @@ using BishreltHelpdesk.API.Authorization;
 using BishreltHelpdesk.Application.DTOs.Common;
 using BishreltHelpdesk.Application.DTOs.Users;
 using BishreltHelpdesk.Application.Interfaces;
+using BishreltHelpdesk.Domain.Interfaces;
 using BishreltHelpdesk.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using BishreltHelpdesk.Infrastructure.Data;
 
 namespace BishreltHelpdesk.API.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Policy = Policies.AdminOrAbove)]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IUserRepository _userRepository;
+    private readonly ICurrentUserService _currentUser;
+    private readonly AppDbContext _context;
 
-    public UsersController(IUserService userService, IUserRepository userRepository)
+    public UsersController(
+        IUserService userService,
+        IUserRepository userRepository,
+        ICurrentUserService currentUser,
+        AppDbContext context)
     {
         _userService = userService;
         _userRepository = userRepository;
+        _currentUser = currentUser;
+        _context = context;
     }
 
     [HttpGet]
+    [Authorize(Policy = Policies.AdminOrAbove)]
     public async Task<IActionResult> GetList([FromQuery] UserFilterRequest filter)
     {
         var result = await _userService.GetListAsync(filter);
@@ -30,13 +42,42 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("grouped")]
+    [Authorize(Policy = Policies.AdminOrAbove)]
     public async Task<IActionResult> GetGroupedByCompany()
     {
         var result = await _userService.GetGroupedByCompanyAsync();
         return Ok(ApiResponse<List<CompanyGroupedUsers>>.Ok(result));
     }
 
+    /// <summary>
+    /// Тухайн нэвтэрсэн хэрэглэгчийн компанийн идэвхтэй ажилтнуудын
+    /// тоймлогдсон жагсаалт. Шилжүүлгийн хүсэлт гэх мэт User-ийн ашигладаг
+    /// dropdown-уудад хэрэглэхээр зориулсан.
+    /// </summary>
+    [HttpGet("colleagues")]
+    public async Task<IActionResult> GetColleagues()
+    {
+        var companyId = _currentUser.CompanyId;
+        if (!companyId.HasValue)
+            return Ok(ApiResponse<List<object>>.Ok(new List<object>()));
+
+        var users = await _context.Users
+            .Where(u => u.CompanyId == companyId.Value && u.IsActive)
+            .OrderBy(u => u.FullName)
+            .Select(u => new
+            {
+                id = u.Id,
+                fullName = u.FullName,
+                position = u.Position,
+                companyId = u.CompanyId
+            })
+            .ToListAsync();
+
+        return Ok(ApiResponse<object>.Ok(users));
+    }
+
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = Policies.AdminOrAbove)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _userService.GetByIdAsync(id);
@@ -77,6 +118,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("engineers")]
+    [Authorize(Policy = Policies.AdminOrAbove)]
     public async Task<IActionResult> GetEngineers()
     {
         var engineers = await _userRepository.GetEngineersAsync();

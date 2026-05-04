@@ -8,7 +8,9 @@ public class Notification : BaseEntity
     public string Type { get; set; } = "Feedback";
     public bool IsRead { get; set; } = false;
     public Guid? RelatedTicketId { get; set; }
+    public Guid? RelatedTransferId { get; set; }
 
     public User Recipient { get; set; } = null!;
     public Ticket? RelatedTicket { get; set; }
+    public ComputerTransferRequest? RelatedTransfer { get; set; }
 }

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import type { CreateTicketRequest } from "@/types/ticket";
 import type { TicketResponse } from "@/types/ticket";
+import type { ComputerListItem } from "@/types/computer";
 import toast from "react-hot-toast";
 
 interface CompanyOption {
@@ -26,6 +27,12 @@ interface CallTypeOption {
   value: string;
   label: string;
   defaultPriority: string;
+}
+
+interface DepartmentOption {
+  id: string;
+  name: string;
+  companyId: string;
 }
 
 export default function TicketCreatePage() {
@@ -41,6 +48,8 @@ export default function TicketCreatePage() {
   const [companyId, setCompanyId] = useState(user?.companyId ?? "");
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [position, setPosition] = useState(user?.position ?? "");
+  const [department, setDepartment] = useState(user?.departmentName ?? "");
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [computerNumber, setComputerNumber] = useState(user?.computerNumber ?? "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ?? "");
   const [title, setTitle] = useState("");
@@ -81,17 +90,49 @@ export default function TicketCreatePage() {
     if (!isGuest && user) {
       setFullName(user.fullName);
       setPosition(user.position ?? "");
+      setDepartment(user.departmentName ?? "");
       setComputerNumber(user.computerNumber ?? "");
       setPhoneNumber(user.phoneNumber ?? "");
       setCompanyId(user.companyId);
     } else if (isGuest) {
       setFullName("");
       setPosition("");
+      setDepartment("");
       setComputerNumber("");
       setPhoneNumber("");
       setCompanyId("");
     }
   }, [isGuest, user]);
+
+  // Компани солигдоход тухайн компанийн хэлтсүүдийг ачаална
+  useEffect(() => {
+    if (!companyId) {
+      setDepartments([]);
+      return;
+    }
+    api
+      .get<DepartmentOption[]>("/departments", { companyId })
+      .then((res) => {
+        if (res.success && res.data) setDepartments(res.data);
+        else setDepartments([]);
+      });
+  }, [companyId]);
+
+  // Хэрэглэгчийн бүртгэлтэй компьютер байвал domain name-ыг "Компьютерийн дугаар"-т
+  // автомат бөглөнө (зочин биш үед).
+  useEffect(() => {
+    if (isGuest || !user) return;
+    api.get<ComputerListItem[]>("/computers/me").then((res) => {
+      if (!res.success || !res.data || res.data.length === 0) return;
+      // domainName байгаа эхний компьютер, эс байвал AssetCode-ыг
+      const first =
+        res.data.find((c) => c.domainName && c.domainName.trim()) ??
+        res.data[0];
+      const auto = first.domainName?.trim() || first.assetCode;
+      // Хэрэглэгч өөрөө юм оруулаагүй бол л автомат бөглөнө
+      setComputerNumber((prev) => prev || auto);
+    });
+  }, [user, isGuest]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +143,7 @@ export default function TicketCreatePage() {
       companyId,
       fullName,
       position: position || undefined,
+      department: department || undefined,
       computerNumber: computerNumber || undefined,
       phoneNumber,
       title,
@@ -202,6 +244,27 @@ export default function TicketCreatePage() {
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
               />
+              {departments.length > 0 ? (
+                <Select
+                  label="Хэлтэс"
+                  options={[
+                    { value: "", label: "Сонгох..." },
+                    ...departments.map((d) => ({
+                      value: d.name,
+                      label: d.name,
+                    })),
+                  ]}
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                />
+              ) : (
+                <Input
+                  label="Хэлтэс"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="Жишээ: НББ"
+                />
+              )}
               <Input
                 label="Компьютерийн дугаар"
                 value={computerNumber}

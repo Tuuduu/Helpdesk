@@ -166,8 +166,12 @@ export default function TicketsPage() {
   return (
     <>
       <PageHeader
-        title="Тикетүүд"
-        description="Бүх ирсэн тикетүүдийн жагсаалт"
+        title={isAdminOrAbove ? "Тикетүүд" : "Миний тикетүүд"}
+        description={
+          isAdminOrAbove
+            ? "Бүх ирсэн тикетүүдийн жагсаалт"
+            : "Миний үүсгэсэн тикетүүдийн жагсаалт"
+        }
         actions={
           <Button
             icon={<Plus className="w-4 h-4" />}

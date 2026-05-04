@@ -9,6 +9,7 @@ public class CreateTicketRequest
     public Guid CompanyId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? Position { get; set; }
+    public string? Department { get; set; }
     public string? ComputerNumber { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -46,8 +47,10 @@ public class TicketResponse : TicketListItem
     public string Description { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string? Position { get; set; }
+    public string? Department { get; set; }
     public string? ComputerNumber { get; set; }
     public bool IsGuest { get; set; }
+    public Guid? AssignedToId { get; set; }
     public string? ClosedByName { get; set; }
     public DateTime? ClosedAt { get; set; }
     public List<TicketHistoryItem> History { get; set; } = new();

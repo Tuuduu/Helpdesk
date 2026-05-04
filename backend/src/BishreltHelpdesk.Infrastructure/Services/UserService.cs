@@ -33,6 +33,7 @@ public class UserService : IUserService
     {
         var query = _context.Users
             .Include(u => u.Company)
+            .Include(u => u.Department)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -121,6 +122,7 @@ public class UserService : IUserService
     {
         var user = await _context.Users
             .Include(u => u.Company)
+            .Include(u => u.Department)
             .FirstOrDefaultAsync(u => u.Id == id)
             ?? throw new NotFoundException("Хэрэглэгч олдсонгүй");
 
@@ -142,6 +144,7 @@ public class UserService : IUserService
             PasswordHash = _passwordHashService.Hash(request.Password),
             FullName = request.FullName,
             CompanyId = request.CompanyId,
+            DepartmentId = request.DepartmentId,
             Position = request.Position,
             PhoneNumber = request.PhoneNumber,
             ComputerNumber = request.ComputerNumber,
@@ -159,6 +162,7 @@ public class UserService : IUserService
     {
         var user = await _context.Users
             .Include(u => u.Company)
+            .Include(u => u.Department)
             .FirstOrDefaultAsync(u => u.Id == id)
             ?? throw new NotFoundException("Хэрэглэгч олдсонгүй");
 
@@ -175,6 +179,19 @@ public class UserService : IUserService
                 ?? throw new BadRequestException("Компани олдсонгүй");
             user.CompanyId = request.CompanyId.Value;
             user.Company = company;
+            // Компани солигдвол хэлтсийг хүчингүй болгох (давхар компанийн хэлтэс байж болохгүй)
+            user.DepartmentId = null;
+            user.Department = null;
+        }
+
+        if (request.DepartmentId.HasValue)
+        {
+            var dept = await _context.Departments.FindAsync(request.DepartmentId.Value)
+                ?? throw new BadRequestException("Хэлтэс олдсонгүй");
+            if (dept.CompanyId != user.CompanyId)
+                throw new BadRequestException("Хэлтэс хэрэглэгчийн компанид харьяалагдахгүй байна");
+            user.DepartmentId = dept.Id;
+            user.Department = dept;
         }
 
         await _unitOfWork.SaveChangesAsync();
@@ -210,6 +227,8 @@ public class UserService : IUserService
             FullName = u.FullName,
             CompanyId = u.CompanyId,
             CompanyName = u.Company?.Name ?? "",
+            DepartmentId = u.DepartmentId,
+            DepartmentName = u.Department?.Name,
             Position = u.Position,
             PhoneNumber = u.PhoneNumber,
             ComputerNumber = u.ComputerNumber,

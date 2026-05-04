@@ -77,7 +77,7 @@ export default function FeedbackPage() {
         const res = await api.get<FeedbackResponse[]>(endpoint);
         if (res.success && res.data) {
           const items = res.data as FeedbackResponse[];
-          setData({ items, totalCount: items.length, page: 1, pageSize: items.length, totalPages: 1 });
+          setData({ items, totalCount: items.length, page: 1, pageSize: items.length, totalPages: 1, hasNextPage: false, hasPreviousPage: false });
         }
       }
     } finally {

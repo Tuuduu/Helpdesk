@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User, Building2, Phone, Monitor, Briefcase } from "lucide-react";
+import { Mail, Lock, User, Phone, Monitor, Briefcase } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { registerUser } from "@/lib/auth";
 import { api } from "@/lib/api";
@@ -16,11 +16,18 @@ interface CompanyOption {
   name: string;
 }
 
+interface DepartmentOption {
+  id: string;
+  name: string;
+  companyId: string;
+}
+
 export default function RegisterPage() {
   const { isAuthenticated, refreshUser } = useAuth();
   const router = useRouter();
 
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -29,6 +36,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     companyId: "",
+    departmentId: "",
     position: "",
     phoneNumber: "",
     computerNumber: "",
@@ -39,6 +47,20 @@ export default function RegisterPage() {
       if (res.success && res.data) setCompanies(res.data);
     });
   }, []);
+
+  // Компани сонгоход тухайн компанийн хэлтсүүдийг ачаалах
+  useEffect(() => {
+    if (!form.companyId) {
+      setDepartments([]);
+      return;
+    }
+    api
+      .get<DepartmentOption[]>("/departments", { companyId: form.companyId })
+      .then((res) => {
+        if (res.success && res.data) setDepartments(res.data);
+        else setDepartments([]);
+      });
+  }, [form.companyId]);
 
   useEffect(() => {
     if (isAuthenticated) router.push("/dashboard");
@@ -68,6 +90,7 @@ export default function RegisterPage() {
       password: form.password,
       fullName: form.fullName,
       companyId: form.companyId,
+      departmentId: form.departmentId || undefined,
       position: form.position || undefined,
       phoneNumber: form.phoneNumber || undefined,
       computerNumber: form.computerNumber || undefined,
@@ -139,8 +162,21 @@ export default function RegisterPage() {
             ...companies.map((c) => ({ value: c.id, label: c.name })),
           ]}
           value={form.companyId}
-          onChange={set("companyId")}
+          onChange={(e) => {
+            set("companyId")(e);
+            // Компани солигдоход хэлтсийг арилгана
+            setForm((prev) => ({ ...prev, departmentId: "" }));
+          }}
           required
+        />
+        <Select
+          label="Хэлтэс"
+          options={[
+            { value: "", label: form.companyId ? "Хэлтэс сонгох..." : "Эхлээд компани сонгоно уу" },
+            ...departments.map((d) => ({ value: d.id, label: d.name })),
+          ]}
+          value={form.departmentId}
+          onChange={set("departmentId")}
         />
         <Input
           label="Албан тушаал"

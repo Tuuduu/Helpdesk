@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { USER_ROLE_LABELS } from "@/lib/constants";
@@ -10,11 +10,18 @@ import {
   GlassPanel,
   Button,
   Input,
+  Select,
   Badge,
 } from "@/components/ui";
 import type { AuthUser } from "@/types/auth";
 import type { UpdateProfileRequest, ChangePasswordRequest } from "@/types/user";
 import toast from "react-hot-toast";
+
+interface DepartmentOption {
+  id: string;
+  name: string;
+  companyId: string;
+}
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -23,11 +30,22 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [profileForm, setProfileForm] = useState({
     fullName: user?.fullName ?? "",
+    departmentId: user?.departmentId ?? "",
     position: user?.position ?? "",
     phoneNumber: user?.phoneNumber ?? "",
     computerNumber: user?.computerNumber ?? "",
   });
   const [profileLoading, setProfileLoading] = useState(false);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+
+  useEffect(() => {
+    if (!user?.companyId) return;
+    api
+      .get<DepartmentOption[]>("/departments", { companyId: user.companyId })
+      .then((res) => {
+        if (res.success && res.data) setDepartments(res.data);
+      });
+  }, [user?.companyId]);
 
   // Password change
   const [passwordForm, setPasswordForm] = useState({
@@ -41,6 +59,9 @@ export default function ProfilePage() {
     setProfileLoading(true);
     const body: UpdateProfileRequest = {
       fullName: profileForm.fullName,
+      departmentId: profileForm.departmentId
+        ? profileForm.departmentId
+        : "00000000-0000-0000-0000-000000000000",
       position: profileForm.position || undefined,
       phoneNumber: profileForm.phoneNumber || undefined,
       computerNumber: profileForm.computerNumber || undefined,
@@ -113,6 +134,8 @@ export default function ProfilePage() {
           <div className="mt-6 pt-4 border-t border-gray-100 space-y-3 text-sm">
             <ProfileRow label="Имэйл" value={user.email} />
             <ProfileRow label="Компани" value={user.companyName} />
+            <ProfileRow label="Хэлтэс" value={user.departmentName} />
+            <ProfileRow label="Албан тушаал" value={user.position} />
             <ProfileRow label="Утас" value={user.phoneNumber} />
             <ProfileRow label="Компьютер №" value={user.computerNumber} />
           </div>
@@ -125,6 +148,7 @@ export default function ProfilePage() {
               onClick={() => {
                 setProfileForm({
                   fullName: user.fullName,
+                  departmentId: user.departmentId ?? "",
                   position: user.position ?? "",
                   phoneNumber: user.phoneNumber ?? "",
                   computerNumber: user.computerNumber ?? "",
@@ -154,7 +178,24 @@ export default function ProfilePage() {
                   }
                   required
                 />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Select
+                    label="Хэлтэс"
+                    options={[
+                      { value: "", label: "Сонгоогүй" },
+                      ...departments.map((d) => ({
+                        value: d.id,
+                        label: d.name,
+                      })),
+                    ]}
+                    value={profileForm.departmentId}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        departmentId: e.target.value,
+                      })
+                    }
+                  />
                   <Input
                     label="Албан тушаал"
                     value={profileForm.position}
@@ -165,6 +206,8 @@ export default function ProfilePage() {
                       })
                     }
                   />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Утасны дугаар"
                     value={profileForm.phoneNumber}

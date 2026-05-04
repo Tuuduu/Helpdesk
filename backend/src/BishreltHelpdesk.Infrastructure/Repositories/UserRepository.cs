@@ -11,7 +11,7 @@ public class UserRepository : Repository<User>, IUserRepository
     public UserRepository(AppDbContext context) : base(context) { }
 
     public async Task<User?> GetByEmailAsync(string email)
-        => await _dbSet.Include(u => u.Company).FirstOrDefaultAsync(u => u.Email == email);
+        => await _dbSet.Include(u => u.Company).Include(u => u.Department).FirstOrDefaultAsync(u => u.Email == email);
 
     public async Task<List<User>> GetByCompanyAsync(Guid companyId)
         => await _dbSet.Where(u => u.CompanyId == companyId).ToListAsync();

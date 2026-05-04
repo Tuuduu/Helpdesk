@@ -22,6 +22,8 @@ public class UserInfo
     public string Role { get; set; } = string.Empty;
     public Guid CompanyId { get; set; }
     public string CompanyName { get; set; } = string.Empty;
+    public Guid? DepartmentId { get; set; }
+    public string? DepartmentName { get; set; }
     public string? Position { get; set; }
     public string? PhoneNumber { get; set; }
     public string? ComputerNumber { get; set; }
@@ -39,6 +41,7 @@ public class RegisterRequest
     public string Password { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public Guid CompanyId { get; set; }
+    public Guid? DepartmentId { get; set; }
     public string? Position { get; set; }
     public string? PhoneNumber { get; set; }
     public string? ComputerNumber { get; set; }

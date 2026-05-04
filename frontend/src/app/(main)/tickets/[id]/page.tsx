@@ -57,7 +57,7 @@ export default function TicketDetailPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const { isAdminOrAbove, isUser } = useAuth();
+  const { user, isAdminOrAbove, isSuperAdmin, isUser } = useAuth();
 
   const [ticket, setTicket] = useState<TicketResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,6 +73,7 @@ export default function TicketDetailPage({
   const [engineers, setEngineers] = useState<EngineerOption[]>([]);
   const [selectedEngineer, setSelectedEngineer] = useState("");
   const [assignLoading, setAssignLoading] = useState(false);
+  const [claimLoading, setClaimLoading] = useState(false);
 
   const fetchTicket = useCallback(async () => {
     const res = await api.get<TicketResponse>(`/tickets/${params.id}`);
@@ -119,6 +120,22 @@ export default function TicketDetailPage({
       toast.error(res.errors?.[0] || "Алдаа гарлаа");
     }
     setAssignLoading(false);
+  };
+
+  const handleClaim = async () => {
+    if (!user) return;
+    setClaimLoading(true);
+    const res = await api.patch<TicketResponse>(
+      `/tickets/${params.id}/assign`,
+      { assignToId: user.id }
+    );
+    if (res.success && res.data) {
+      setTicket(res.data);
+      toast.success("Тикет таньд хуваарилагдлаа");
+    } else {
+      toast.error(res.errors?.[0] || "Алдаа гарлаа");
+    }
+    setClaimLoading(false);
   };
 
   const openAssignModal = async () => {
@@ -188,28 +205,49 @@ export default function TicketDetailPage({
                 {CALL_TYPE_LABELS[ticket.callType as CallType]}
               </Badge>
 
-              {isAdminOrAbove && ticket.status !== "Closed" && (
-                <div className="flex items-center gap-2 ml-auto">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setNewStatus(ticket.status as TicketStatus);
-                      setStatusModalOpen(true);
-                    }}
-                  >
-                    Төлөв өөрчлөх
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<UserCheck className="w-3.5 h-3.5" />}
-                    onClick={openAssignModal}
-                  >
-                    Хуваарилах
-                  </Button>
-                </div>
-              )}
+              {isAdminOrAbove && ticket.status !== "Closed" && (() => {
+                const isAssignedToMe = !!user && ticket.assignedToId === user.id;
+                const isUnassigned = !ticket.assignedToId;
+                const canChangeStatus = isSuperAdmin || isAssignedToMe;
+                const canAssignToOthers = isSuperAdmin;
+                const canClaim = !isSuperAdmin && isUnassigned;
+                return (
+                  <div className="flex items-center gap-2 ml-auto">
+                    {canChangeStatus && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setNewStatus(ticket.status as TicketStatus);
+                          setStatusModalOpen(true);
+                        }}
+                      >
+                        Төлөв өөрчлөх
+                      </Button>
+                    )}
+                    {canAssignToOthers && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={<UserCheck className="w-3.5 h-3.5" />}
+                        onClick={openAssignModal}
+                      >
+                        Хуваарилах
+                      </Button>
+                    )}
+                    {canClaim && (
+                      <Button
+                        size="sm"
+                        icon={<UserCheck className="w-3.5 h-3.5" />}
+                        loading={claimLoading}
+                        onClick={handleClaim}
+                      >
+                        Хуваарилж авах
+                      </Button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </GlassPanel>
 
@@ -538,7 +576,7 @@ function FeedbackPanel({
           </p>
           {existing.comment && (
             <p className="text-sm text-gray-500 text-center max-w-md">
-              "{existing.comment}"
+              &ldquo;{existing.comment}&rdquo;
             </p>
           )}
           <p className="text-xs text-gray-400">{formatDateTime(existing.createdAt)}</p>

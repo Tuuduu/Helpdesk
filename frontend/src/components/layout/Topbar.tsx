@@ -27,6 +27,7 @@ interface NotificationItem {
   isRead: boolean;
   relatedTicketId?: string;
   ticketNumber?: string;
+  relatedTransferId?: string;
   createdAt: string;
 }
 
@@ -181,7 +182,7 @@ function NotificationBell() {
 
   const fetchCount = useCallback(async () => {
     const res = await api.get<number>("/notifications/unread-count");
-    if (res.success && res.data !== undefined) setUnreadCount(res.data);
+    if (res.success && res.data != null) setUnreadCount(res.data as number);
   }, []);
 
   const fetchNotifications = useCallback(async () => {
@@ -224,9 +225,11 @@ function NotificationBell() {
       setNotifications((prev) => prev.map((item) => item.id === n.id ? { ...item, isRead: true } : item));
       setUnreadCount((c) => Math.max(0, c - 1));
     }
-    if (n.relatedTicketId) {
+    setOpen(false);
+    if (n.relatedTransferId) {
+      router.push(`/transfers/${n.relatedTransferId}`);
+    } else if (n.relatedTicketId) {
       router.push(`/tickets/${n.relatedTicketId}`);
-      setOpen(false);
     }
   };
 

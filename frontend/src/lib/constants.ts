@@ -8,16 +8,21 @@ import {
   Info,
   UserCircle,
   Settings,
+  Monitor,
+  HardDrive,
+  ArrowLeftRight,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 
 // ── Roles ──
-export type UserRole = "SuperAdmin" | "Admin" | "User";
+export type UserRole = "SuperAdmin" | "Admin" | "User" | "ITStorekeeper";
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   SuperAdmin: "Супер админ",
   Admin: "Админ",
   User: "Хэрэглэгч",
+  ITStorekeeper: "МТ-ийн нярав",
 };
 
 // ── Ticket Status ──
@@ -52,6 +57,86 @@ export const TICKET_PRIORITY_COLORS: Record<TicketPriority, string> = {
   Medium: "bg-yellow-50 text-yellow-700 border-yellow-200",
   High: "bg-orange-50 text-orange-700 border-orange-200",
   Urgent: "bg-red-50 text-red-700 border-red-200",
+};
+
+// ── Computer Status ──
+export type ComputerStatus = "Active" | "InRepair" | "InTransfer" | "Retired";
+
+export const COMPUTER_STATUS_LABELS: Record<ComputerStatus, string> = {
+  Active: "Идэвхтэй",
+  InRepair: "Засварт",
+  InTransfer: "Шилжиж буй",
+  Retired: "Хасагдсан",
+};
+
+export const COMPUTER_STATUS_COLORS: Record<ComputerStatus, string> = {
+  Active: "bg-green-50 text-green-700 border-green-200",
+  InRepair: "bg-amber-50 text-amber-700 border-amber-200",
+  InTransfer: "bg-purple-50 text-purple-700 border-purple-200",
+  Retired: "bg-gray-50 text-gray-600 border-gray-200",
+};
+
+// ── Computer Kind ──
+export type ComputerKind = "Desktop" | "Laptop";
+
+export const COMPUTER_KIND_LABELS: Record<ComputerKind, string> = {
+  Desktop: "Суурин",
+  Laptop: "Зөөврийн",
+};
+
+export const COMPUTER_KIND_COLORS: Record<ComputerKind, string> = {
+  Desktop: "bg-blue-50 text-blue-700 border-blue-200",
+  Laptop: "bg-purple-50 text-purple-700 border-purple-200",
+};
+
+// ── Storage Type ──
+export type StorageType = "HDD" | "SSD" | "M2";
+
+export const STORAGE_TYPE_LABELS: Record<StorageType, string> = {
+  HDD: "HDD",
+  SSD: "SSD",
+  M2: "M.2 NVMe",
+};
+
+// ── MAC Address Type ──
+export type MacAddressType = "Lan" | "Wifi" | "Bluetooth" | "Other";
+
+export const MAC_TYPE_LABELS: Record<MacAddressType, string> = {
+  Lan: "LAN",
+  Wifi: "Wi-Fi",
+  Bluetooth: "Bluetooth",
+  Other: "Бусад",
+};
+
+export const MAC_TYPE_COLORS: Record<MacAddressType, string> = {
+  Lan: "bg-blue-50 text-blue-700 border-blue-200",
+  Wifi: "bg-green-50 text-green-700 border-green-200",
+  Bluetooth: "bg-purple-50 text-purple-700 border-purple-200",
+  Other: "bg-gray-50 text-gray-600 border-gray-200",
+};
+
+// ── Transfer Request Status ──
+export type TransferRequestStatus =
+  | "PendingApproval"
+  | "PendingReceiver"
+  | "Approved"
+  | "Rejected"
+  | "Cancelled";
+
+export const TRANSFER_STATUS_LABELS: Record<TransferRequestStatus, string> = {
+  PendingApproval: "Зөвшөөрөл хүлээж буй",
+  PendingReceiver: "Хүлээн авагч хүлээж буй",
+  Approved: "Батлагдсан",
+  Rejected: "Татгалзсан",
+  Cancelled: "Цуцлагдсан",
+};
+
+export const TRANSFER_STATUS_COLORS: Record<TransferRequestStatus, string> = {
+  PendingApproval: "bg-amber-50 text-amber-700 border-amber-200",
+  PendingReceiver: "bg-blue-50 text-blue-700 border-blue-200",
+  Approved: "bg-green-50 text-green-700 border-green-200",
+  Rejected: "bg-red-50 text-red-700 border-red-200",
+  Cancelled: "bg-gray-50 text-gray-600 border-gray-200",
 };
 
 // ── Call Type ──
@@ -92,10 +177,40 @@ export const SIDEBAR_NAV: NavItem[] = [
     roles: ["SuperAdmin", "Admin"],
   },
   {
+    label: "Миний тикетүүд",
+    path: "/tickets",
+    icon: Ticket,
+    roles: ["User"],
+  },
+  {
     label: "Хэрэглэгчид",
     path: "/users",
     icon: Users,
     roles: ["SuperAdmin", "Admin"],
+  },
+  {
+    label: "Компьютер",
+    path: "/computers",
+    icon: Monitor,
+    roles: ["SuperAdmin", "Admin", "ITStorekeeper"],
+  },
+  {
+    label: "Миний компьютер",
+    path: "/my-computers",
+    icon: HardDrive,
+    roles: ["SuperAdmin", "Admin", "User", "ITStorekeeper"],
+  },
+  {
+    label: "Шилжүүлэг",
+    path: "/transfers",
+    icon: ArrowLeftRight,
+    roles: ["SuperAdmin", "ITStorekeeper", "User", "Admin"],
+  },
+  {
+    label: "Засвар & Акт",
+    path: "/processes",
+    icon: Wrench,
+    roles: ["SuperAdmin", "ITStorekeeper", "User", "Admin"],
   },
   {
     label: "Тайлан",

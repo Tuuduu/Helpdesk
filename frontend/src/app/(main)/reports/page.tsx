@@ -10,9 +10,10 @@ import {
   Clock,
   CheckCircle,
   TrendingUp,
+  Monitor,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, cn } from "@/lib/utils";
 import {
   TICKET_STATUS_LABELS,
   TICKET_STATUS_COLORS,
@@ -35,8 +36,11 @@ import {
   Spinner,
   type Column,
 } from "@/components/ui";
+import { ComputerReportTab } from "@/components/reports/ComputerReportTab";
 import type { ReportSummary, ReportRow } from "@/types/report";
 import toast from "react-hot-toast";
+
+type ReportTab = "ticket" | "computer";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Бүх төлөв" },
@@ -53,6 +57,7 @@ interface FilterOption {
 }
 
 export default function ReportsPage() {
+  const [tab, setTab] = useState<ReportTab>("ticket");
   const [report, setReport] = useState<ReportSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -239,9 +244,43 @@ export default function ReportsPage() {
     <RoleGuard roles={["SuperAdmin", "Admin"]}>
       <PageHeader
         title="Тайлан"
-        description="Тикетийн тайлан боловсруулах, Excel-ээр татах"
+        description="Тикет ба компьютерийн тайлан, Excel-ээр татах"
       />
 
+      {/* Tabs */}
+      <div className="flex items-center gap-1 mb-5 p-1 bg-white/40 backdrop-blur rounded-lg border border-white/60 w-fit">
+        <button
+          type="button"
+          onClick={() => setTab("ticket")}
+          className={cn(
+            "inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+            tab === "ticket"
+              ? "bg-primary text-white shadow-sm"
+              : "text-gray-600 hover:text-primary"
+          )}
+        >
+          <Ticket className="w-4 h-4" />
+          Тикет
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("computer")}
+          className={cn(
+            "inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+            tab === "computer"
+              ? "bg-primary text-white shadow-sm"
+              : "text-gray-600 hover:text-primary"
+          )}
+        >
+          <Monitor className="w-4 h-4" />
+          Компьютер
+        </button>
+      </div>
+
+      {tab === "computer" ? (
+        <ComputerReportTab />
+      ) : (
+      <>
       {/* Filters */}
       <GlassPanel className="mb-6">
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
@@ -390,6 +429,8 @@ export default function ReportsPage() {
             </p>
           </div>
         </GlassPanel>
+      )}
+      </>
       )}
     </RoleGuard>
   );

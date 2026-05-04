@@ -9,5 +9,6 @@ public class NotificationResponse
     public bool IsRead { get; set; }
     public Guid? RelatedTicketId { get; set; }
     public string? TicketNumber { get; set; }
+    public Guid? RelatedTransferId { get; set; }
     public DateTime CreatedAt { get; set; }
 }

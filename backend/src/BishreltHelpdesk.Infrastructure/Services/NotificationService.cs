@@ -38,6 +38,7 @@ public class NotificationService : INotificationService
                 IsRead = n.IsRead,
                 RelatedTicketId = n.RelatedTicketId,
                 TicketNumber = n.RelatedTicket != null ? n.RelatedTicket.TicketNumber : null,
+                RelatedTransferId = n.RelatedTransferId,
                 CreatedAt = n.CreatedAt
             })
             .ToListAsync();
@@ -70,7 +71,7 @@ public class NotificationService : INotificationService
             .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
     }
 
-    public async Task CreateAsync(Guid recipientId, string title, string message, string type, Guid? relatedTicketId = null)
+    public async Task CreateAsync(Guid recipientId, string title, string message, string type, Guid? relatedTicketId = null, Guid? relatedTransferId = null)
     {
         var notification = new Notification
         {
@@ -81,6 +82,7 @@ public class NotificationService : INotificationService
             Type = type,
             IsRead = false,
             RelatedTicketId = relatedTicketId,
+            RelatedTransferId = relatedTransferId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

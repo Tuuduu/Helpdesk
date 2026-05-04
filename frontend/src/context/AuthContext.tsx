@@ -21,7 +21,9 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginRequest) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    credentials: LoginRequest
+  ) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -64,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await loginUser(credentials);
     if (response.success && response.data) {
       setUser(response.data.user);
-      return { success: true };
+      return { success: true, role: response.data.user.role };
     }
     return {
       success: false,
@@ -108,5 +110,8 @@ export function useAuth() {
     isAdmin: user?.role === "Admin",
     isAdminOrAbove: user?.role === "SuperAdmin" || user?.role === "Admin",
     isUser: user?.role === "User",
+    isITStorekeeper: user?.role === "ITStorekeeper",
+    isStorekeeperOrAbove:
+      user?.role === "SuperAdmin" || user?.role === "ITStorekeeper",
   };
 }

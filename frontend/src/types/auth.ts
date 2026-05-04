@@ -19,6 +19,8 @@ export interface AuthUser {
   role: UserRole;
   companyId: string;
   companyName: string;
+  departmentId?: string;
+  departmentName?: string;
   position?: string;
   phoneNumber?: string;
   computerNumber?: string;
@@ -34,6 +36,7 @@ export interface RegisterRequest {
   password: string;
   fullName: string;
   companyId: string;
+  departmentId?: string;
   position?: string;
   phoneNumber?: string;
   computerNumber?: string;

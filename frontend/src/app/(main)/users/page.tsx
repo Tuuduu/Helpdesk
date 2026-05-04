@@ -91,11 +91,15 @@ export default function UsersPage() {
     password: "",
     fullName: "",
     companyId: "",
+    departmentId: "",
     position: "",
     phoneNumber: "",
     computerNumber: "",
     role: "User" as UserRole,
   });
+  const [createDepartments, setCreateDepartments] = useState<
+    { id: string; name: string }[]
+  >([]);
 
   // Fetch list
   const fetchList = useCallback(async () => {
@@ -145,10 +149,31 @@ export default function UsersPage() {
     }
   };
 
+  // Load departments when company changes in create modal
+  useEffect(() => {
+    if (!newUser.companyId) {
+      setCreateDepartments([]);
+      return;
+    }
+    api
+      .get<{ id: string; name: string }[]>("/departments", {
+        companyId: newUser.companyId,
+      })
+      .then((res) => {
+        if (res.success && res.data) setCreateDepartments(res.data);
+        else setCreateDepartments([]);
+      });
+  }, [newUser.companyId]);
+
   const handleCreate = async () => {
     setCreateLoading(true);
     const body: CreateUserRequest = {
-      ...newUser,
+      email: newUser.email,
+      password: newUser.password,
+      fullName: newUser.fullName,
+      companyId: newUser.companyId,
+      role: newUser.role,
+      departmentId: newUser.departmentId || undefined,
       position: newUser.position || undefined,
       phoneNumber: newUser.phoneNumber || undefined,
       computerNumber: newUser.computerNumber || undefined,
@@ -159,6 +184,7 @@ export default function UsersPage() {
       setCreateOpen(false);
       setNewUser({
         email: "", password: "", fullName: "", companyId: "",
+        departmentId: "",
         position: "", phoneNumber: "", computerNumber: "", role: "User",
       });
       if (viewMode === "list") fetchList();
@@ -433,7 +459,9 @@ export default function UsersPage() {
                 label="Компани"
                 options={companies.map((c) => ({ value: c.id, label: c.name }))}
                 value={newUser.companyId}
-                onChange={(e) => setNewUser({ ...newUser, companyId: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, companyId: e.target.value, departmentId: "" })
+                }
                 placeholder="Компани сонгох"
                 required
               />
@@ -446,6 +474,15 @@ export default function UsersPage() {
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Select
+              label="Хэлтэс"
+              options={[
+                { value: "", label: newUser.companyId ? "Сонгох..." : "Эхлээд компани" },
+                ...createDepartments.map((d) => ({ value: d.id, label: d.name })),
+              ]}
+              value={newUser.departmentId}
+              onChange={(e) => setNewUser({ ...newUser, departmentId: e.target.value })}
+            />
             <Input
               label="Албан тушаал"
               value={newUser.position}

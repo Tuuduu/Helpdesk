@@ -7,6 +7,8 @@ export interface UserResponse {
   fullName: string;
   companyId: string;
   companyName: string;
+  departmentId?: string;
+  departmentName?: string;
   position?: string;
   phoneNumber?: string;
   computerNumber?: string;
@@ -21,6 +23,7 @@ export interface CreateUserRequest {
   password: string;
   fullName: string;
   companyId: string;
+  departmentId?: string;
   position?: string;
   phoneNumber?: string;
   computerNumber?: string;
@@ -30,6 +33,7 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   fullName?: string;
   companyId?: string;
+  departmentId?: string;
   position?: string;
   phoneNumber?: string;
   computerNumber?: string;
@@ -52,6 +56,7 @@ export interface CompanyGroupedUsers {
 
 export interface UpdateProfileRequest {
   fullName?: string;
+  departmentId?: string | null;
   position?: string;
   phoneNumber?: string;
   computerNumber?: string;

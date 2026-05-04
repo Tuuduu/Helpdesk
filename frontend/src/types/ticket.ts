@@ -6,6 +6,7 @@ export interface CreateTicketRequest {
   companyId: string;
   fullName: string;
   position?: string;
+  department?: string;
   computerNumber?: string;
   title: string;
   description: string;
@@ -39,8 +40,10 @@ export interface TicketResponse extends TicketListItem {
   description: string;
   phoneNumber: string;
   position?: string;
+  department?: string;
   computerNumber?: string;
   isGuest: boolean;
+  assignedToId?: string;
   closedByName?: string;
   closedAt?: string;
   history: TicketHistoryItem[];

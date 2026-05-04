@@ -172,6 +172,468 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.ToTable("companies", (string)null);
                 });
 
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Computer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("AssetCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Brand")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Cpu")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("DomainName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Gpu")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Monitor")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("RamGb")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Active");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetCode")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("CompanyId", "Status");
+
+                    b.ToTable("computers", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerAccessory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputerId");
+
+                    b.ToTable("computer_accessories", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputerId");
+
+                    b.ToTable("computer_images", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerMacAddress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(17)
+                        .HasColumnType("character varying(17)");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Address")
+                        .IsUnique();
+
+                    b.HasIndex("ComputerId");
+
+                    b.ToTable("computer_mac_addresses", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerProcessHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ActedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActedByUserId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("ComputerId", "CompletedAt");
+
+                    b.ToTable("computer_process_histories", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerProcessRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CompletionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CurrentStepIndex")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("PendingApproval");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.HasIndex("ComputerId", "Type", "Status");
+
+                    b.ToTable("computer_process_requests", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerStorage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("CapacityGb")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModelName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputerId");
+
+                    b.ToTable("computer_storages", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerTransferHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ApprovedByStorekeeperId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FromUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ToUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("TransferredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedByStorekeeperId");
+
+                    b.HasIndex("FromUserId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("ToUserId");
+
+                    b.HasIndex("ComputerId", "TransferredAt");
+
+                    b.ToTable("computer_transfer_histories", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerTransferRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ComputerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CurrentStepIndex")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("FromUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ReceiverActionAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReceiverNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("PendingApproval");
+
+                    b.Property<DateTime?>("StorekeeperActionAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("StorekeeperId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StorekeeperNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("ToUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputerId");
+
+                    b.HasIndex("FromUserId");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("StorekeeperId");
+
+                    b.HasIndex("ToUserId");
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.ToTable("computer_transfer_requests", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Department", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("departments", (string)null);
+                });
+
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Feedback", b =>
                 {
                     b.Property<Guid>("Id")
@@ -236,6 +698,9 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.Property<Guid?>("RelatedTicketId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("RelatedTransferId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -255,9 +720,46 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
 
                     b.HasIndex("RelatedTicketId");
 
+                    b.HasIndex("RelatedTransferId");
+
                     b.HasIndex("RecipientId", "IsRead");
 
                     b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ProcessStepApproval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("ActedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ActedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsApproval")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("ProcessRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActedByUserId");
+
+                    b.HasIndex("ProcessRequestId", "StepOrder");
+
+                    b.ToTable("process_step_approvals", (string)null);
                 });
 
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.RefreshToken", b =>
@@ -361,6 +863,10 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -472,6 +978,99 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.ToTable("ticket_histories", (string)null);
                 });
 
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferStepApproval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ApprovedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TransferId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("TransferId", "StepOrder");
+
+                    b.ToTable("transfer_step_approvals", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferWorkflowStep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WorkflowType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Transfer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "WorkflowType", "Order");
+
+                    b.ToTable("transfer_workflow_steps", (string)null);
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferWorkflowStepApprover", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("StepId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("transfer_workflow_step_approvers", (string)null);
+                });
+
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -492,6 +1091,9 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -531,6 +1133,8 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DepartmentId");
+
                     b.HasIndex("Email")
                         .IsUnique();
 
@@ -546,6 +1150,210 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                         .HasForeignKey("UpdatedById");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Computer", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "Owner")
+                        .WithMany("OwnedComputers")
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerAccessory", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany("Accessories")
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Computer");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerImage", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany("Images")
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Computer");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerMacAddress", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany("MacAddresses")
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Computer");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerProcessHistory", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "ActedByUser")
+                        .WithMany()
+                        .HasForeignKey("ActedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany()
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.ComputerProcessRequest", "Request")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActedByUser");
+
+                    b.Navigation("Computer");
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerProcessRequest", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany()
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Computer");
+
+                    b.Navigation("RequestedByUser");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerStorage", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany("Storages")
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Computer");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerTransferHistory", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "ApprovedByStorekeeper")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByStorekeeperId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany("TransferHistories")
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "FromUser")
+                        .WithMany()
+                        .HasForeignKey("FromUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.ComputerTransferRequest", "Request")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "ToUser")
+                        .WithMany()
+                        .HasForeignKey("ToUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedByStorekeeper");
+
+                    b.Navigation("Computer");
+
+                    b.Navigation("FromUser");
+
+                    b.Navigation("Request");
+
+                    b.Navigation("ToUser");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerTransferRequest", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Computer", "Computer")
+                        .WithMany("TransferRequests")
+                        .HasForeignKey("ComputerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "FromUser")
+                        .WithMany()
+                        .HasForeignKey("FromUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "Storekeeper")
+                        .WithMany()
+                        .HasForeignKey("StorekeeperId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "ToUser")
+                        .WithMany()
+                        .HasForeignKey("ToUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Computer");
+
+                    b.Navigation("FromUser");
+
+                    b.Navigation("RequestedByUser");
+
+                    b.Navigation("Storekeeper");
+
+                    b.Navigation("ToUser");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Department", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Feedback", b =>
@@ -579,9 +1387,35 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                         .HasForeignKey("RelatedTicketId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.ComputerTransferRequest", "RelatedTransfer")
+                        .WithMany()
+                        .HasForeignKey("RelatedTransferId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Recipient");
 
                     b.Navigation("RelatedTicket");
+
+                    b.Navigation("RelatedTransfer");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ProcessStepApproval", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "ActedByUser")
+                        .WithMany()
+                        .HasForeignKey("ActedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.ComputerProcessRequest", "ProcessRequest")
+                        .WithMany("StepApprovals")
+                        .HasForeignKey("ProcessRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActedByUser");
+
+                    b.Navigation("ProcessRequest");
                 });
 
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.RefreshToken", b =>
@@ -656,6 +1490,55 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferStepApproval", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.ComputerTransferRequest", "Transfer")
+                        .WithMany("StepApprovals")
+                        .HasForeignKey("TransferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("Transfer");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferWorkflowStep", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferWorkflowStepApprover", b =>
+                {
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.TransferWorkflowStep", "Step")
+                        .WithMany("Approvers")
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Step");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.User", b =>
                 {
                     b.HasOne("BishreltHelpdesk.Domain.Entities.Company", "Company")
@@ -664,13 +1547,50 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("BishreltHelpdesk.Domain.Entities.Department", "Department")
+                        .WithMany("Users")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Company");
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Company", b =>
                 {
                     b.Navigation("Tickets");
 
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Computer", b =>
+                {
+                    b.Navigation("Accessories");
+
+                    b.Navigation("Images");
+
+                    b.Navigation("MacAddresses");
+
+                    b.Navigation("Storages");
+
+                    b.Navigation("TransferHistories");
+
+                    b.Navigation("TransferRequests");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerProcessRequest", b =>
+                {
+                    b.Navigation("StepApprovals");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.ComputerTransferRequest", b =>
+                {
+                    b.Navigation("StepApprovals");
+                });
+
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.Department", b =>
+                {
                     b.Navigation("Users");
                 });
 
@@ -681,11 +1601,18 @@ namespace BishreltHelpdesk.Infrastructure.Migrations
                     b.Navigation("History");
                 });
 
+            modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.TransferWorkflowStep", b =>
+                {
+                    b.Navigation("Approvers");
+                });
+
             modelBuilder.Entity("BishreltHelpdesk.Domain.Entities.User", b =>
                 {
                     b.Navigation("AssignedTickets");
 
                     b.Navigation("Feedbacks");
+
+                    b.Navigation("OwnedComputers");
 
                     b.Navigation("RefreshTokens");
 

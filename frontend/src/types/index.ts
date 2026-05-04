@@ -6,3 +6,7 @@ export type * from "./dashboard";
 export type * from "./feedback";
 export type * from "./about";
 export type * from "./report";
+export type * from "./computer";
+export type * from "./department";
+export type * from "./transferWorkflow";
+export type * from "./computerProcess";

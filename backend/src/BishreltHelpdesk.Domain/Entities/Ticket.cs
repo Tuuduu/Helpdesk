@@ -13,6 +13,7 @@ public class Ticket : BaseEntity
     public Guid? RequestedById { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? Position { get; set; }
+    public string? Department { get; set; }
     public string? ComputerNumber { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
 
