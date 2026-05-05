@@ -40,6 +40,12 @@ interface CompanyOption {
   name: string;
 }
 
+interface DepartmentOption {
+  id: string;
+  name: string;
+  companyId: string;
+}
+
 export default function UserDetailPage({
   params,
 }: {
@@ -51,17 +57,20 @@ export default function UserDetailPage({
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
 
   // Edit state
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     companyId: "",
+    departmentId: "",
     position: "",
     phoneNumber: "",
     computerNumber: "",
     role: "User" as UserRole,
     isActive: true,
+    isGlobalApprover: false,
   });
   const [saveLoading, setSaveLoading] = useState(false);
 
@@ -80,11 +89,13 @@ export default function UserDetailPage({
       setForm({
         fullName: res.data.fullName,
         companyId: res.data.companyId,
+        departmentId: res.data.departmentId ?? "",
         position: res.data.position ?? "",
         phoneNumber: res.data.phoneNumber ?? "",
         computerNumber: res.data.computerNumber ?? "",
         role: res.data.role,
         isActive: res.data.isActive,
+        isGlobalApprover: res.data.isGlobalApprover ?? false,
       });
     }
     setLoading(false);
@@ -102,16 +113,32 @@ export default function UserDetailPage({
     }
   }, [editing, companies.length]);
 
+  // Load departments for the selected company
+  useEffect(() => {
+    if (!editing || !form.companyId) {
+      setDepartments([]);
+      return;
+    }
+    api
+      .get<DepartmentOption[]>("/departments", { companyId: form.companyId })
+      .then((res) => {
+        if (res.success && res.data) setDepartments(res.data);
+        else setDepartments([]);
+      });
+  }, [editing, form.companyId]);
+
   const handleSave = async () => {
     setSaveLoading(true);
     const body: UpdateUserRequest = {
       fullName: form.fullName,
       companyId: form.companyId,
+      departmentId: form.departmentId || undefined,
       position: form.position || undefined,
       phoneNumber: form.phoneNumber || undefined,
       computerNumber: form.computerNumber || undefined,
       role: form.role,
       isActive: form.isActive,
+      isGlobalApprover: form.role === "Admin" ? form.isGlobalApprover : false,
     };
     const res = await api.put<UserResponse>(`/users/${params.id}`, body);
     if (res.success && res.data) {
@@ -280,7 +307,11 @@ export default function UserDetailPage({
                       }))}
                       value={form.companyId}
                       onChange={(e) =>
-                        setForm({ ...form, companyId: e.target.value })
+                        setForm({
+                          ...form,
+                          companyId: e.target.value,
+                          departmentId: "",
+                        })
                       }
                     />
                   )}
@@ -296,7 +327,21 @@ export default function UserDetailPage({
                     }
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Select
+                    label="Хэлтэс"
+                    options={[
+                      { value: "", label: "Сонгоогүй" },
+                      ...departments.map((d) => ({
+                        value: d.id,
+                        label: d.name,
+                      })),
+                    ]}
+                    value={form.departmentId}
+                    onChange={(e) =>
+                      setForm({ ...form, departmentId: e.target.value })
+                    }
+                  />
                   <Input
                     label="Албан тушаал"
                     value={form.position}
@@ -304,6 +349,8 @@ export default function UserDetailPage({
                       setForm({ ...form, position: e.target.value })
                     }
                   />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Утас"
                     value={form.phoneNumber}
@@ -330,6 +377,28 @@ export default function UserDetailPage({
                   />
                   <span className="text-sm text-gray-700">Идэвхтэй</span>
                 </label>
+
+                {form.role === "Admin" && (
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.isGlobalApprover}
+                      onChange={(e) =>
+                        setForm({ ...form, isGlobalApprover: e.target.checked })
+                      }
+                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <div>
+                      <span className="text-sm text-gray-700">
+                        Бүх компанийн шилжүүлгийн урсгалд оролцох эрх
+                      </span>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Энэ хэрэглэгчийг бусад компанийн workflow дотор
+                        approver-аар тохируулах боломжтой болгоно.
+                      </p>
+                    </div>
+                  </label>
+                )}
               </div>
 
               <div className="flex items-center gap-3 mt-6 pt-4 border-t border-gray-100">
@@ -348,11 +417,13 @@ export default function UserDetailPage({
                       setForm({
                         fullName: user.fullName,
                         companyId: user.companyId,
+                        departmentId: user.departmentId ?? "",
                         position: user.position ?? "",
                         phoneNumber: user.phoneNumber ?? "",
                         computerNumber: user.computerNumber ?? "",
                         role: user.role,
                         isActive: user.isActive,
+                        isGlobalApprover: user.isGlobalApprover ?? false,
                       });
                     }
                   }}
@@ -370,10 +441,17 @@ export default function UserDetailPage({
                 <DetailRow label="Овог нэр" value={user.fullName} />
                 <DetailRow label="Имэйл" value={user.email} />
                 <DetailRow label="Компани" value={user.companyName} />
+                <DetailRow label="Хэлтэс" value={user.departmentName} />
                 <DetailRow
                   label="Роль"
                   value={USER_ROLE_LABELS[user.role]}
                 />
+                {user.role === "Admin" && (
+                  <DetailRow
+                    label="Бүх компанийн урсгал"
+                    value={user.isGlobalApprover ? "Эрх олгосон" : "Эрх олгоогүй"}
+                  />
+                )}
                 <DetailRow label="Албан тушаал" value={user.position} />
                 <DetailRow label="Утас" value={user.phoneNumber} />
                 <DetailRow

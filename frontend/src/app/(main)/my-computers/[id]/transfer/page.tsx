@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import {
   GlassPanel,
   Button,
-  Select,
+  SearchableSelect,
   Textarea,
   Spinner,
 } from "@/components/ui";
@@ -19,12 +19,19 @@ import type {
   CreateTransferRequestRequest,
   TransferRequestResponse,
 } from "@/types/computer";
+import type { PagedResult } from "@/types/api";
+
+interface CompanyOption {
+  id: string;
+  name: string;
+}
 
 interface UserOption {
   id: string;
   fullName: string;
   position?: string;
   companyId: string;
+  departmentName?: string;
 }
 
 export default function CreateTransferPage() {
@@ -36,30 +43,55 @@ export default function CreateTransferPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [computer, setComputer] = useState<ComputerResponse | null>(null);
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
 
+  const [toCompanyId, setToCompanyId] = useState("");
   const [toUserId, setToUserId] = useState("");
   const [reason, setReason] = useState("");
 
+  // Initial load: computer + companies. Default target company to computer's own.
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const cRes = await api.get<ComputerResponse>(`/computers/${id}`);
+    const [cRes, compRes] = await Promise.all([
+      api.get<ComputerResponse>(`/computers/${id}`),
+      api.get<CompanyOption[]>("/companies"),
+    ]);
     if (cRes.success && cRes.data) {
       setComputer(cRes.data);
-      const uRes = await api.get<UserOption[]>("/users/colleagues");
-      if (uRes.success && uRes.data) {
-        // Exclude current owner
-        setUsers(uRes.data.filter((u) => u.id !== cRes.data!.ownerUserId));
-      }
+      setToCompanyId(cRes.data.companyId);
     } else {
       toast.error(cRes.errors?.[0] || "Компьютер олдсонгүй");
     }
+    if (compRes.success && compRes.data) setCompanies(compRes.data);
     setLoading(false);
   }, [id]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Load receiver candidates when target company changes
+  useEffect(() => {
+    if (!toCompanyId || !computer) {
+      setUsers([]);
+      return;
+    }
+    api
+      .get<PagedResult<UserOption>>("/users", {
+        companyId: toCompanyId,
+        pageSize: 200,
+        isActive: true,
+      })
+      .then((res) => {
+        if (res.success && res.data) {
+          // Exclude current owner from receiver candidates
+          setUsers(res.data.items.filter((u) => u.id !== computer.ownerUserId));
+        } else {
+          setUsers([]);
+        }
+      });
+  }, [toCompanyId, computer]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,17 +173,35 @@ export default function CreateTransferPage() {
           </div>
 
           <div className="space-y-4">
-            <Select
+            <SearchableSelect
+              label="Компани"
+              options={companies.map((c) => ({ value: c.id, label: c.name }))}
+              value={toCompanyId}
+              onChange={(val) => {
+                setToCompanyId(val);
+                setToUserId("");
+              }}
+              placeholder="Компани сонгох"
+              emptyMessage="Компани олдсонгүй"
+              required
+            />
+
+            <SearchableSelect
               label="Хүлээн авагч ажилтан"
               options={users.map((u) => ({
                 value: u.id,
-                label: u.position
-                  ? `${u.fullName} — ${u.position}`
-                  : u.fullName,
+                label: u.fullName,
+                sublabel: [u.departmentName, u.position]
+                  .filter(Boolean)
+                  .join(" · "),
               }))}
               value={toUserId}
-              onChange={(e) => setToUserId(e.target.value)}
-              placeholder="Ажилтан сонгох"
+              onChange={setToUserId}
+              placeholder={
+                toCompanyId ? "Ажилтан сонгох (хайж болно)" : "Эхлээд компани сонгоно уу"
+              }
+              emptyMessage="Ажилтан олдсонгүй"
+              disabled={!toCompanyId}
               required
             />
 

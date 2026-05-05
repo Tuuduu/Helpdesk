@@ -85,9 +85,6 @@ public class ComputerTransferService : IComputerTransferService
         var toUser = await _userRepository.GetByIdAsync(request.ToUserId)
             ?? throw new NotFoundException("Хүлээн авагч хэрэглэгч олдсонгүй");
 
-        if (toUser.CompanyId != computer.CompanyId)
-            throw new BadRequestException("Хүлээн авагч өөр компанид харьяалагдаж байна");
-
         if (!toUser.IsActive)
             throw new BadRequestException("Хүлээн авагч хэрэглэгч идэвхгүй байна");
 
@@ -229,7 +226,9 @@ public class ComputerTransferService : IComputerTransferService
         if (transfer.Status != TransferRequestStatus.PendingReceiver)
             throw new BadRequestException("Энэ хүсэлт хүлээн авагчийн батлах төлөвт байхгүй байна");
 
-        var receiver = await _userRepository.GetByIdAsync(transfer.ToUserId)
+        var receiver = await _context.Users
+            .Include(u => u.Department)
+            .FirstOrDefaultAsync(u => u.Id == transfer.ToUserId)
             ?? throw new NotFoundException("Хүлээн авагч олдсонгүй");
 
         var lastApproval = transfer.StepApprovals
@@ -246,9 +245,11 @@ public class ComputerTransferService : IComputerTransferService
 
             var oldOwnerId = transfer.Computer.OwnerUserId;
             transfer.Computer.OwnerUserId = transfer.ToUserId;
+            transfer.Computer.CompanyId = receiver.CompanyId;
             transfer.Computer.Position = string.IsNullOrWhiteSpace(receiver.Position)
                 ? transfer.Computer.Position
                 : receiver.Position;
+            transfer.Computer.Department = receiver.Department?.Name;
             transfer.Computer.Status = ComputerStatus.Active;
 
             var history = new ComputerTransferHistory

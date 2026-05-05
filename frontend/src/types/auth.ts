@@ -25,6 +25,7 @@ export interface AuthUser {
   phoneNumber?: string;
   computerNumber?: string;
   avatarUrl?: string;
+  isGlobalApprover?: boolean;
 }
 
 export interface RefreshTokenRequest {

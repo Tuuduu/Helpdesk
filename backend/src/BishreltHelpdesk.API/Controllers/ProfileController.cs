@@ -80,7 +80,8 @@ public class ProfileController : ControllerBase
         Position = user.Position,
         PhoneNumber = user.PhoneNumber,
         ComputerNumber = user.ComputerNumber,
-        AvatarUrl = user.AvatarUrl
+        AvatarUrl = user.AvatarUrl,
+        IsGlobalApprover = user.IsGlobalApprover
     };
 
     [HttpPut("password")]

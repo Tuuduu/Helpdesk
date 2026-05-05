@@ -125,4 +125,34 @@ public class UsersController : ControllerBase
         var result = engineers.Select(e => new { e.Id, e.FullName }).ToList();
         return Ok(ApiResponse<object>.Ok(result));
     }
+
+    /// <summary>
+    /// Бүх компанийн workflow-д approver болж чадах хэрэглэгчид:
+    /// SuperAdmin-ууд + IsGlobalApprover=true тохируулсан Admin-ууд.
+    /// Settings → Шилжүүлгийн урсгал tab дотор approver picker-т ашиглана.
+    /// </summary>
+    [HttpGet("global-approvers")]
+    [Authorize(Policy = Policies.AdminOrAbove)]
+    public async Task<IActionResult> GetGlobalApprovers()
+    {
+        var users = await _context.Users
+            .Include(u => u.Company)
+            .Where(u => u.IsActive
+                && (u.Role == Domain.Enums.UserRole.SuperAdmin || u.IsGlobalApprover))
+            .OrderBy(u => u.Company.Name)
+            .ThenBy(u => u.FullName)
+            .Select(u => new
+            {
+                id = u.Id,
+                fullName = u.FullName,
+                position = u.Position,
+                companyId = u.CompanyId,
+                companyName = u.Company.Name,
+                role = u.Role.ToString(),
+                isGlobalApprover = u.IsGlobalApprover
+            })
+            .ToListAsync();
+
+        return Ok(ApiResponse<object>.Ok(users));
+    }
 }

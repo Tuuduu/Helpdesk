@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Inbox, CheckCircle2, Wrench, Archive } from "lucide-react";
+import { Inbox, Wrench, Archive } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";

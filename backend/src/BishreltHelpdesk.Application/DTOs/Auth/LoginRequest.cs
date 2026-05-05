@@ -28,6 +28,7 @@ public class UserInfo
     public string? PhoneNumber { get; set; }
     public string? ComputerNumber { get; set; }
     public string? AvatarUrl { get; set; }
+    public bool IsGlobalApprover { get; set; }
 }
 
 public class RefreshTokenRequest

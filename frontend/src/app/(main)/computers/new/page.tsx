@@ -18,7 +18,7 @@ import {
   type ComputerKind,
 } from "@/lib/constants";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { GlassPanel, Button, Input, Select } from "@/components/ui";
+import { GlassPanel, Button, Input, Select, SearchableSelect } from "@/components/ui";
 import { StorageInputList } from "@/components/computers/StorageInputList";
 import { MacAddressInputList } from "@/components/computers/MacAddressInputList";
 import { AccessoryInputList } from "@/components/computers/AccessoryInputList";
@@ -50,7 +50,7 @@ interface UserOption {
 
 export default function NewComputerPage() {
   const router = useRouter();
-  const { user, isSuperAdmin } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
@@ -79,15 +79,14 @@ export default function NewComputerPage() {
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  // Load companies (only for SuperAdmin)
+  // Load companies (all roles can pick which company to register the computer for)
   useEffect(() => {
     async function loadCompanies() {
-      if (!isSuperAdmin) return;
       const res = await api.get<CompanyOption[]>("/companies");
       if (res.success && res.data) setCompanies(res.data);
     }
     loadCompanies();
-  }, [isSuperAdmin]);
+  }, []);
 
   // Load users for selected company
   useEffect(() => {
@@ -251,42 +250,34 @@ export default function NewComputerPage() {
               Эзэмшил
             </h3>
             <div className="space-y-4">
-              {isSuperAdmin && companies.length > 0 ? (
-                <Select
-                  label="Компани"
-                  options={companies.map((c) => ({ value: c.id, label: c.name }))}
-                  value={companyId}
-                  onChange={(e) => {
-                    setCompanyId(e.target.value);
-                    setOwnerUserId("");
-                  }}
-                  placeholder="Компани сонгох"
-                  required
-                />
-              ) : (
-                <div className="text-xs text-gray-500">
-                  Танай компани:{" "}
-                  <span className="font-medium text-gray-700">
-                    {user?.companyName ?? "—"}
-                  </span>
-                </div>
-              )}
+              <SearchableSelect
+                label="Компани"
+                options={companies.map((c) => ({ value: c.id, label: c.name }))}
+                value={companyId}
+                onChange={(val) => {
+                  setCompanyId(val);
+                  setOwnerUserId("");
+                  setDepartment("");
+                }}
+                placeholder="Компани сонгох"
+                emptyMessage="Компани олдсонгүй"
+                required
+              />
 
-              <Select
+              <SearchableSelect
                 label="Эзэмшигч ажилтан"
                 options={users.map((u) => ({
                   value: u.id,
-                  label: [
-                    u.fullName,
-                    u.departmentName,
-                    u.position,
-                  ]
-                    .filter(Boolean)
-                    .join(" — "),
+                  label: u.fullName,
+                  sublabel: [u.departmentName, u.position].filter(Boolean).join(" · "),
                 }))}
                 value={ownerUserId}
-                onChange={(e) => setOwnerUserId(e.target.value)}
-                placeholder={companyId ? "Ажилтан сонгох" : "Эхлээд компани сонгоно уу"}
+                onChange={setOwnerUserId}
+                placeholder={
+                  companyId ? "Ажилтан сонгох (хайж болно)" : "Эхлээд компани сонгоно уу"
+                }
+                emptyMessage="Ажилтан олдсонгүй"
+                disabled={!companyId}
                 required
               />
 

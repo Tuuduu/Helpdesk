@@ -2,6 +2,8 @@ export { GlassPanel } from "./GlassPanel";
 export { Button } from "./Button";
 export { Input } from "./Input";
 export { Select } from "./Select";
+export { SearchableSelect } from "./SearchableSelect";
+export type { SearchableOption } from "./SearchableSelect";
 export { Textarea } from "./Textarea";
 export { Modal } from "./Modal";
 export { Card } from "./Card";

@@ -44,6 +44,8 @@ interface UserOption {
   id: string;
   fullName: string;
   position?: string;
+  companyId: string;
+  companyName?: string;
 }
 
 interface PagedUsers {
@@ -72,21 +74,29 @@ export function TransferWorkflowTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Users load when company changes
+  // Users load when company changes — include selected company's users PLUS
+  // global approvers (SuperAdmins + Admins flagged as IsGlobalApprover) so
+  // cross-company approvers can be assigned without creating per-company accounts.
   useEffect(() => {
     if (!companyId) {
       setUsers([]);
       return;
     }
-    api
-      .get<PagedUsers>("/users", {
+    Promise.all([
+      api.get<PagedUsers>("/users", {
         companyId,
         pageSize: 200,
         isActive: true,
-      })
-      .then((res) => {
-        if (res.success && res.data) setUsers(res.data.items);
-      });
+      }),
+      api.get<UserOption[]>("/users/global-approvers"),
+    ]).then(([companyRes, globalRes]) => {
+      const companyUsers = companyRes.success && companyRes.data ? companyRes.data.items : [];
+      const globalApprovers = globalRes.success && globalRes.data ? globalRes.data : [];
+      const map = new Map<string, UserOption>();
+      for (const u of companyUsers) map.set(u.id, u);
+      for (const u of globalApprovers) if (!map.has(u.id)) map.set(u.id, u);
+      setUsers(Array.from(map.values()));
+    });
   }, [companyId]);
 
   // Workflow load when company / type changes
@@ -285,6 +295,7 @@ export function TransferWorkflowTab() {
                       ) : (
                         users.map((u) => {
                           const selected = step.approverUserIds.includes(u.id);
+                          const isCrossCompany = u.companyId !== companyId;
                           return (
                             <button
                               key={u.id}
@@ -294,14 +305,26 @@ export function TransferWorkflowTab() {
                               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                                 selected
                                   ? "bg-primary text-white border-primary"
+                                  : isCrossCompany
+                                  ? "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400"
                                   : "bg-white text-gray-700 border-gray-200 hover:border-primary"
                               } ${!isSuperAdmin ? "opacity-60 cursor-default" : ""}`}
+                              title={
+                                isCrossCompany
+                                  ? `${u.companyName ?? "Бусад компани"} (Супер админ)`
+                                  : undefined
+                              }
                             >
                               {selected && (
                                 <CheckCircle2 className="w-3 h-3" />
                               )}
                               {u.fullName}
-                              {u.position && (
+                              {isCrossCompany && (
+                                <span className="opacity-70">
+                                  · {u.companyName ?? "Бусад"}
+                                </span>
+                              )}
+                              {!isCrossCompany && u.position && (
                                 <span className="opacity-70">
                                   · {u.position}
                                 </span>

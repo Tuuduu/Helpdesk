@@ -153,7 +153,8 @@ public class AuthService : IAuthService
                 Position = user.Position,
                 PhoneNumber = user.PhoneNumber,
                 ComputerNumber = user.ComputerNumber,
-                AvatarUrl = user.AvatarUrl
+                AvatarUrl = user.AvatarUrl,
+                IsGlobalApprover = user.IsGlobalApprover
             }
         };
     }

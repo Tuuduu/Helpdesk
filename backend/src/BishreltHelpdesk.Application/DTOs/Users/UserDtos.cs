@@ -18,6 +18,7 @@ public class UserResponse
     public string Role { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; }
+    public bool IsGlobalApprover { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -32,6 +33,7 @@ public class CreateUserRequest
     public string? PhoneNumber { get; set; }
     public string? ComputerNumber { get; set; }
     public UserRole Role { get; set; } = UserRole.User;
+    public bool IsGlobalApprover { get; set; } = false;
 }
 
 public class UpdateUserRequest
@@ -44,6 +46,7 @@ public class UpdateUserRequest
     public string? ComputerNumber { get; set; }
     public UserRole? Role { get; set; }
     public bool? IsActive { get; set; }
+    public bool? IsGlobalApprover { get; set; }
 }
 
 public class UserFilterRequest : PagedRequest

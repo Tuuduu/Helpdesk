@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Mail, Lock, User, Phone, Monitor, Briefcase, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -19,14 +18,13 @@ type Tab = "login" | "ticket";
 
 export default function LoginPage() {
   const { login, isAuthenticated, role } = useAuth();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("login");
 
   useEffect(() => {
     if (isAuthenticated && role) {
-      router.push(getDefaultPathForRole(role));
+      window.location.href = getDefaultPathForRole(role);
     }
-  }, [isAuthenticated, role, router]);
+  }, [isAuthenticated, role]);
 
   if (isAuthenticated) {
     return null;
@@ -65,7 +63,7 @@ export default function LoginPage() {
       </div>
 
       {activeTab === "login" ? (
-        <LoginForm login={login} router={router} />
+        <LoginForm login={login} />
       ) : (
         <PublicTicketForm />
       )}
@@ -77,10 +75,8 @@ export default function LoginPage() {
 
 function LoginForm({
   login,
-  router,
 }: {
   login: ReturnType<typeof useAuth>["login"];
-  router: ReturnType<typeof useRouter>;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -93,7 +89,7 @@ function LoginForm({
       const result = await login({ email, password });
       if (result.success) {
         toast.success("Амжилттай нэвтэрлээ");
-        router.push(getDefaultPathForRole(result.role));
+        window.location.href = getDefaultPathForRole(result.role);
       } else {
         toast.error(result.error || "Нэвтрэх амжилтгүй");
       }

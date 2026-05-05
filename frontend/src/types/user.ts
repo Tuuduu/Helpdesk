@@ -15,6 +15,7 @@ export interface UserResponse {
   role: UserRole;
   avatarUrl?: string;
   isActive: boolean;
+  isGlobalApprover: boolean;
   createdAt: string;
 }
 
@@ -28,6 +29,7 @@ export interface CreateUserRequest {
   phoneNumber?: string;
   computerNumber?: string;
   role: UserRole;
+  isGlobalApprover?: boolean;
 }
 
 export interface UpdateUserRequest {
@@ -39,6 +41,7 @@ export interface UpdateUserRequest {
   computerNumber?: string;
   role?: UserRole;
   isActive?: boolean;
+  isGlobalApprover?: boolean;
 }
 
 export interface UserFilterRequest extends PagedRequest {

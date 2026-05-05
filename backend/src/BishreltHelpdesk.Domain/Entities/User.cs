@@ -15,6 +15,7 @@ public class User : BaseEntity
     public UserRole Role { get; set; } = UserRole.User;
     public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsGlobalApprover { get; set; } = false;
 
     // Navigation
     public Company Company { get; set; } = null!;

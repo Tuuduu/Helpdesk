@@ -111,6 +111,7 @@ public class UserService : IUserService
                         Role = u.Role.ToString(),
                         AvatarUrl = u.AvatarUrl,
                         IsActive = u.IsActive,
+                        IsGlobalApprover = u.IsGlobalApprover,
                         CreatedAt = u.CreatedAt
                     })
                     .ToList()
@@ -149,7 +150,8 @@ public class UserService : IUserService
             PhoneNumber = request.PhoneNumber,
             ComputerNumber = request.ComputerNumber,
             Role = request.Role,
-            IsActive = true
+            IsActive = true,
+            IsGlobalApprover = request.IsGlobalApprover
         };
 
         await _userRepository.AddAsync(user);
@@ -172,6 +174,7 @@ public class UserService : IUserService
         if (request.ComputerNumber != null) user.ComputerNumber = request.ComputerNumber;
         if (request.Role.HasValue) user.Role = request.Role.Value;
         if (request.IsActive.HasValue) user.IsActive = request.IsActive.Value;
+        if (request.IsGlobalApprover.HasValue) user.IsGlobalApprover = request.IsGlobalApprover.Value;
 
         if (request.CompanyId.HasValue && request.CompanyId.Value != user.CompanyId)
         {
@@ -235,6 +238,7 @@ public class UserService : IUserService
             Role = u.Role.ToString(),
             AvatarUrl = u.AvatarUrl,
             IsActive = u.IsActive,
+            IsGlobalApprover = u.IsGlobalApprover,
             CreatedAt = u.CreatedAt
         };
     }
