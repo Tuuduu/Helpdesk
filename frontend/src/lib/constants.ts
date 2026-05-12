@@ -12,6 +12,8 @@ import {
   HardDrive,
   ArrowLeftRight,
   Wrench,
+  BookUser,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -223,6 +225,18 @@ export const SIDEBAR_NAV: NavItem[] = [
     path: "/feedback",
     icon: MessageSquare,
     roles: ["SuperAdmin", "Admin", "User"],
+  },
+  {
+    label: "Харилцагч лавлах",
+    path: "/vendors",
+    icon: BookUser,
+    roles: ["SuperAdmin", "Admin"],
+  },
+  {
+    label: "Мэдэгдэл",
+    path: "/announcements",
+    icon: Megaphone,
+    roles: ["SuperAdmin", "Admin"],
   },
   {
     label: "Тохиргоо",

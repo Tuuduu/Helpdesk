@@ -17,6 +17,10 @@ public class User : BaseEntity
     public bool IsActive { get; set; } = true;
     public bool IsGlobalApprover { get; set; } = false;
 
+    // When true (and role is Admin/SuperAdmin), this user's contact info
+    // is shown on the public login page so external requesters can call them.
+    public bool ShowOnLoginPage { get; set; } = false;
+
     // Navigation
     public Company Company { get; set; } = null!;
     public Department? Department { get; set; }

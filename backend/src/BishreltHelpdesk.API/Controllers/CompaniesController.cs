@@ -68,7 +68,7 @@ public class CompaniesController : ControllerBase
 
     // POST /api/companies
     [HttpPost]
-    [Authorize(Policy = Policies.AdminOrAbove)]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
     public async Task<IActionResult> Create([FromBody] CreateCompanyRequest request)
     {
         var existing = await _companyRepository.GetByNameAsync(request.Name);
@@ -95,7 +95,7 @@ public class CompaniesController : ControllerBase
 
     // PUT /api/companies/{id}
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = Policies.AdminOrAbove)]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCompanyRequest request)
     {
         var company = await _companyRepository.GetByIdAsync(id)

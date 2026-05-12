@@ -86,7 +86,7 @@ public class ComputersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/images")]
-    [Authorize(Policy = Policies.AdminOrAbove)]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
     [RequestSizeLimit(MaxImageUploadBytes)]
     public async Task<IActionResult> UploadImage(Guid id, [FromForm] IFormFile file, [FromForm] bool isPrimary = false)
     {
@@ -101,7 +101,7 @@ public class ComputersController : ControllerBase
     }
 
     [HttpDelete("{id:guid}/images/{imageId:guid}")]
-    [Authorize(Policy = Policies.AdminOrAbove)]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
     public async Task<IActionResult> DeleteImage(Guid id, Guid imageId)
     {
         await _computerService.DeleteImageAsync(id, imageId);

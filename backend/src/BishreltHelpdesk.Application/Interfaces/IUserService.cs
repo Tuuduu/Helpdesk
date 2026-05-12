@@ -12,4 +12,5 @@ public interface IUserService
     Task<UserResponse> UpdateAsync(Guid id, UpdateUserRequest request);
     Task DeleteAsync(Guid id);
     Task HardDeleteAsync(Guid id);
+    Task ResetPasswordAsync(Guid id, ResetUserPasswordRequest request);
 }

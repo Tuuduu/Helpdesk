@@ -97,7 +97,7 @@ export default function ComputerDetailPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/computers/${id}/images`,
+        `${process.env.NEXT_PUBLIC_API_URL || "/api"}/computers/${id}/images`,
         {
           method: "POST",
           headers: {
@@ -460,7 +460,7 @@ export default function ComputerDetailPage() {
         <GlassPanel>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-900">Зураг</h3>
-            {isAdminOrAbove && (
+            {isSuperAdmin && (
               <label className="cursor-pointer">
                 <input
                   type="file"
@@ -492,7 +492,7 @@ export default function ComputerDetailPage() {
                 <ImageThumb
                   key={img.id}
                   image={img}
-                  canDelete={isAdminOrAbove}
+                  canDelete={isSuperAdmin}
                   onClick={() => setLightboxUrl(img.imageUrl)}
                   onDelete={() => handleDeleteImage(img.id)}
                 />

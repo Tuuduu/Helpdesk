@@ -4,7 +4,19 @@ import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/components/shared/RoleGuard";
 import { GlassPanel, Card, Select, Spinner } from "@/components/ui";
-import { Ticket, CheckCircle, Clock, TrendingUp, Star } from "lucide-react";
+import {
+  Ticket,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Star,
+  Monitor,
+  Wrench,
+  ArrowLeftRight,
+  Archive,
+  Cpu,
+  Calendar,
+} from "lucide-react";
 import { PERIOD_OPTIONS } from "@/lib/constants";
 import { api } from "@/lib/api";
 import type {
@@ -13,6 +25,7 @@ import type {
   EngineerPerformance,
   FeedbackSummary,
 } from "@/types/dashboard";
+import type { ComputerDashboardResponse } from "@/types/computer";
 import {
   BarChart,
   Bar,
@@ -42,6 +55,17 @@ const CHART_COLORS = {
 const RATING_COLORS = ["#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e"];
 const RATING_LABELS = ["1 ★", "2 ★", "3 ★", "4 ★", "5 ★"];
 
+const COMPANY_PIE_COLORS = [
+  "#2D2C70",
+  "#8b5cf6",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#ec4899",
+  "#14b8a6",
+];
+
 export default function DashboardPage() {
   const [period, setPeriod] = useState("month");
   const [loading, setLoading] = useState(true);
@@ -49,22 +73,25 @@ export default function DashboardPage() {
   const [chartData, setChartData] = useState<TicketChartItem[]>([]);
   const [engineers, setEngineers] = useState<EngineerPerformance[]>([]);
   const [feedback, setFeedback] = useState<FeedbackSummary | null>(null);
+  const [computerStats, setComputerStats] = useState<ComputerDashboardResponse | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     const params = { period };
 
-    const [statsRes, chartRes, engRes, fbRes] = await Promise.all([
+    const [statsRes, chartRes, engRes, fbRes, compRes] = await Promise.all([
       api.get<DashboardStats>("/dashboard/stats", params),
       api.get<TicketChartItem[]>("/dashboard/ticket-chart", params),
       api.get<EngineerPerformance[]>("/dashboard/engineers", params),
       api.get<FeedbackSummary>("/dashboard/feedback", params),
+      api.get<ComputerDashboardResponse>("/computers/dashboard"),
     ]);
 
     if (statsRes.success && statsRes.data) setStats(statsRes.data);
     if (chartRes.success && chartRes.data) setChartData(chartRes.data);
     if (engRes.success && engRes.data) setEngineers(engRes.data);
     if (fbRes.success && fbRes.data) setFeedback(fbRes.data);
+    if (compRes.success && compRes.data) setComputerStats(compRes.data);
 
     setLoading(false);
   }, [period]);
@@ -84,7 +111,7 @@ export default function DashboardPage() {
     <RoleGuard roles={["SuperAdmin", "Admin"]}>
       <PageHeader
         title="Хянах самбар"
-        description="Тикетийн ерөнхий статистик"
+        description="Тикет, компьютер хөрөнгийн ерөнхий статистик"
         actions={
           <div className="w-36">
             <Select
@@ -102,6 +129,14 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
+          {/* Section title — Tickets */}
+          <div className="flex items-center gap-2 mb-4">
+            <Ticket className="w-5 h-5 text-primary" />
+            <h2 className="text-base font-semibold text-gray-900">
+              Тикетийн тойм
+            </h2>
+          </div>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card
@@ -349,6 +384,187 @@ export default function DashboardPage() {
               </div>
             )}
           </GlassPanel>
+
+          {/* Computer Assets section */}
+          {computerStats && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Monitor className="w-5 h-5 text-primary" />
+                <h2 className="text-base font-semibold text-gray-900">
+                  Компьютер хөрөнгийн тойм
+                </h2>
+              </div>
+
+              {/* Computer status cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                <Card
+                  title="Нийт"
+                  value={computerStats.totalCount}
+                  icon={<Monitor className="w-5 h-5" />}
+                />
+                <Card
+                  title="Идэвхтэй"
+                  value={computerStats.activeCount}
+                  icon={<CheckCircle className="w-5 h-5" />}
+                />
+                <Card
+                  title="Засварт"
+                  value={computerStats.inRepairCount}
+                  icon={<Wrench className="w-5 h-5" />}
+                />
+                <Card
+                  title="Шилжиж буй"
+                  value={computerStats.inTransferCount}
+                  icon={<ArrowLeftRight className="w-5 h-5" />}
+                />
+                <Card
+                  title="Хасагдсан"
+                  value={computerStats.retiredCount}
+                  icon={<Archive className="w-5 h-5" />}
+                />
+              </div>
+
+              {/* Secondary metrics */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <Card
+                  title="Дундаж RAM"
+                  value={`${computerStats.averageRamGb} GB`}
+                  icon={<Cpu className="w-5 h-5" />}
+                />
+                <Card
+                  title="Дундаж нас"
+                  value={`${Math.round(computerStats.averageAgeDays)} хоног`}
+                  icon={<Calendar className="w-5 h-5" />}
+                />
+                <Card
+                  title="Шилжүүлэг (30 хоног)"
+                  value={computerStats.transfersLast30Days}
+                  icon={<ArrowLeftRight className="w-5 h-5" />}
+                />
+              </div>
+
+              {/* Charts row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* By company pie */}
+                <GlassPanel>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    Компаниар хуваарилалт
+                  </h3>
+                  {computerStats.byCompany.length > 0 ? (
+                    <div className="flex flex-col items-center">
+                      <ResponsiveContainer width="100%" height={240}>
+                        <PieChart>
+                          <Pie
+                            data={computerStats.byCompany.map((c) => ({
+                              name: c.name,
+                              value: c.count,
+                            }))}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={90}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {computerStats.byCompany.map((_, i) => (
+                              <Cell
+                                key={i}
+                                fill={COMPANY_PIE_COLORS[i % COMPANY_PIE_COLORS.length]}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              background: "rgba(255,255,255,0.95)",
+                              border: "1px solid #e5e7eb",
+                              borderRadius: "12px",
+                              fontSize: "12px",
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+                        {computerStats.byCompany.map((c, i) => (
+                          <div
+                            key={c.name}
+                            className="flex items-center gap-1.5 text-xs text-gray-600"
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{
+                                background:
+                                  COMPANY_PIE_COLORS[i % COMPANY_PIE_COLORS.length],
+                              }}
+                            />
+                            {c.name}: {c.count}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <EmptyChart message="Компанийн өгөгдөл алга" />
+                  )}
+                </GlassPanel>
+
+                {/* By brand bar */}
+                <GlassPanel>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    Брэндээр хуваарилалт
+                  </h3>
+                  {computerStats.byBrand.length > 0 ? (
+                    <ResponsiveContainer
+                      width="100%"
+                      height={Math.max(240, computerStats.byBrand.length * 32)}
+                    >
+                      <BarChart
+                        data={computerStats.byBrand}
+                        layout="vertical"
+                        margin={{ left: 10 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="#e5e7eb"
+                          horizontal={false}
+                        />
+                        <XAxis
+                          type="number"
+                          tick={{ fontSize: 11, fill: "#9ca3af" }}
+                          tickLine={false}
+                          axisLine={false}
+                          allowDecimals={false}
+                        />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          tick={{ fontSize: 12, fill: "#374151" }}
+                          tickLine={false}
+                          axisLine={false}
+                          width={90}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            background: "rgba(255,255,255,0.95)",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "12px",
+                          }}
+                          formatter={(value) => [String(value), "Тоо"]}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill={CHART_COLORS.created}
+                          radius={[0, 4, 4, 0]}
+                          maxBarSize={20}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <EmptyChart message="Брэндийн өгөгдөл алга" />
+                  )}
+                </GlassPanel>
+              </div>
+            </div>
+          )}
         </>
       )}
     </RoleGuard>

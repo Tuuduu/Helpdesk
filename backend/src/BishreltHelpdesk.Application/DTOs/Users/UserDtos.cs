@@ -19,6 +19,7 @@ public class UserResponse
     public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; }
     public bool IsGlobalApprover { get; set; }
+    public bool ShowOnLoginPage { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -47,6 +48,12 @@ public class UpdateUserRequest
     public UserRole? Role { get; set; }
     public bool? IsActive { get; set; }
     public bool? IsGlobalApprover { get; set; }
+    public bool? ShowOnLoginPage { get; set; }
+}
+
+public class ResetUserPasswordRequest
+{
+    public string NewPassword { get; set; } = string.Empty;
 }
 
 public class UserFilterRequest : PagedRequest

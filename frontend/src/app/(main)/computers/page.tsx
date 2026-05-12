@@ -33,6 +33,11 @@ const STATUS_OPTIONS = [
   { value: "Retired", label: "Хасагдсан" },
 ];
 
+interface CompanyOption {
+  id: string;
+  name: string;
+}
+
 export default function ComputersListPage() {
   const router = useRouter();
   const { isAdminOrAbove } = useAuth();
@@ -42,9 +47,18 @@ export default function ComputersListPage() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("");
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortDesc, setSortDesc] = useState(true);
+
+  // Load companies once for filter dropdown
+  useEffect(() => {
+    api.get<CompanyOption[]>("/companies").then((res) => {
+      if (res.success && res.data) setCompanies(res.data);
+    });
+  }, []);
 
   const fetchComputers = useCallback(async () => {
     setLoading(true);
@@ -56,6 +70,7 @@ export default function ComputersListPage() {
     };
     if (search.trim()) params.search = search.trim();
     if (statusFilter) params.status = statusFilter;
+    if (companyFilter) params.companyId = companyFilter;
 
     const res = await api.get<PagedResult<ComputerListItem>>(
       "/computers",
@@ -63,7 +78,7 @@ export default function ComputersListPage() {
     );
     if (res.success && res.data) setData(res.data);
     setLoading(false);
-  }, [page, sortBy, sortDesc, search, statusFilter]);
+  }, [page, sortBy, sortDesc, search, statusFilter, companyFilter]);
 
   useEffect(() => {
     fetchComputers();
@@ -71,7 +86,7 @@ export default function ComputersListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, companyFilter]);
 
   const handleSort = (key: string) => {
     if (sortBy === key) setSortDesc(!sortDesc);
@@ -208,7 +223,19 @@ export default function ComputersListPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
             />
           </div>
-          {(search || statusFilter) && (
+          {companies.length > 1 && (
+            <div className="w-56">
+              <Select
+                options={[
+                  { value: "", label: "Бүх компани" },
+                  ...companies.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
+              />
+            </div>
+          )}
+          {(search || statusFilter || companyFilter) && (
             <Button
               variant="ghost"
               size="sm"
@@ -216,12 +243,20 @@ export default function ComputersListPage() {
               onClick={() => {
                 setSearch("");
                 setStatusFilter("");
+                setCompanyFilter("");
               }}
             >
               Цэвэрлэх
             </Button>
           )}
         </div>
+        {data && (
+          <div className="mt-2 px-1 text-xs text-gray-500">
+            {search || statusFilter || companyFilter ? "Илэрц: " : "Нийт: "}
+            <span className="font-medium text-gray-700">{data.totalCount}</span>{" "}
+            компьютер
+          </div>
+        )}
       </GlassPanel>
 
       <GlassPanel padding="none">

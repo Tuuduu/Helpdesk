@@ -107,6 +107,7 @@ export default function RegisterPage() {
   };
 
   return (
+    <div className="max-w-lg mx-auto w-full">
     <GlassPanel variant="elevated" padding="lg" className="w-full">
       <div className="flex justify-center mb-5">
         <Logo variant="full" theme="light" />
@@ -214,5 +215,6 @@ export default function RegisterPage() {
         </Link>
       </p>
     </GlassPanel>
+    </div>
   );
 }

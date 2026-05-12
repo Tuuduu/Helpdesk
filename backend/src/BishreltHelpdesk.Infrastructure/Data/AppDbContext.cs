@@ -32,6 +32,9 @@ public class AppDbContext : DbContext
     public DbSet<ComputerProcessRequest> ComputerProcessRequests => Set<ComputerProcessRequest>();
     public DbSet<ProcessStepApproval> ProcessStepApprovals => Set<ProcessStepApproval>();
     public DbSet<ComputerProcessHistory> ComputerProcessHistories => Set<ComputerProcessHistory>();
+    public DbSet<VendorType> VendorTypes => Set<VendorType>();
+    public DbSet<VendorContact> VendorContacts => Set<VendorContact>();
+    public DbSet<Announcement> Announcements => Set<Announcement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

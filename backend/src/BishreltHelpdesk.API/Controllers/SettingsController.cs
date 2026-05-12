@@ -118,7 +118,7 @@ public class SettingsController : ControllerBase
     }
 
     [HttpPost("call-types")]
-    [Authorize(Policy = Policies.AdminOrAbove)]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
     public async Task<IActionResult> CreateCallType([FromBody] CreateCallTypeConfigRequest request)
     {
         var code = request.Code.Trim();
@@ -143,7 +143,7 @@ public class SettingsController : ControllerBase
     }
 
     [HttpPut("call-types/{id:guid}")]
-    [Authorize(Policy = Policies.AdminOrAbove)]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
     public async Task<IActionResult> UpdateCallType(Guid id, [FromBody] UpdateCallTypeConfigRequest request)
     {
         var entity = await _context.CallTypeConfigs.FindAsync(id)

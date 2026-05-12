@@ -169,7 +169,7 @@ export default function NewComputerPage() {
   };
 
   const uploadImagesFor = async (computerId: string): Promise<number> => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/api";
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api";
     const token = getAccessToken() ?? "";
     let uploaded = 0;
     for (let i = 0; i < images.length; i++) {

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Plus, Pencil, Trash2, Building2, Phone, Palette, Sun, Moon, Monitor, Users as UsersIcon, ArrowLeftRight,
+  Plus, Pencil, Trash2, Building2, Phone, Palette, Sun, Moon, Monitor, Users as UsersIcon, ArrowLeftRight, BookUser,
 } from "lucide-react";
 import { DepartmentsTab } from "@/components/settings/DepartmentsTab";
 import { TransferWorkflowTab } from "@/components/settings/TransferWorkflowTab";
+import { VendorTypesTab } from "@/components/settings/VendorTypesTab";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/components/shared/RoleGuard";
@@ -49,7 +50,7 @@ interface Company {
   createdAt: string;
 }
 
-type Tab = "companies" | "departments" | "transferWorkflow" | "callTypes" | "branding" | "appearance";
+type Tab = "companies" | "departments" | "transferWorkflow" | "callTypes" | "vendorTypes" | "branding" | "appearance";
 
 // ── Main page ──────────────────────────────────────────────────────
 
@@ -62,6 +63,7 @@ export default function SettingsPage() {
     { id: "departments" as Tab, label: "Хэлтэс",          icon: <UsersIcon className="w-4 h-4" /> },
     { id: "transferWorkflow" as Tab, label: "Шилжүүлгийн урсгал", icon: <ArrowLeftRight className="w-4 h-4" /> },
     { id: "callTypes" as Tab,   label: "Дуудлагын төрөл", icon: <Phone className="w-4 h-4" /> },
+    { id: "vendorTypes" as Tab, label: "Харилцагч төрөл", icon: <BookUser className="w-4 h-4" /> },
     { id: "appearance" as Tab,  label: "Харагдах байдал", icon: <Palette className="w-4 h-4" /> },
     { id: "branding" as Tab,    label: "Брэнд",           icon: <Monitor className="w-4 h-4" />, superAdminOnly: true },
   ];
@@ -93,6 +95,7 @@ export default function SettingsPage() {
       {activeTab === "departments" && <DepartmentsTab />}
       {activeTab === "transferWorkflow" && <TransferWorkflowTab />}
       {activeTab === "callTypes"  && <CallTypesTab />}
+      {activeTab === "vendorTypes" && <VendorTypesTab />}
       {activeTab === "appearance" && <AppearanceTab />}
       {activeTab === "branding"   && isSuperAdmin && <BrandingTab />}
     </RoleGuard>
@@ -256,17 +259,19 @@ function CompaniesTab() {
       align: "right" as const,
       render: (c) => (
         <div className="flex items-center justify-end gap-1">
-          <button onClick={() => openEdit(c)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/5 transition-colors"
-            title="Засах">
-            <Pencil className="w-4 h-4" />
-          </button>
           {isSuperAdmin && (
-            <button onClick={() => setDeleteTarget(c)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-              title="Устгах">
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <>
+              <button onClick={() => openEdit(c)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/5 transition-colors"
+                title="Засах">
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button onClick={() => setDeleteTarget(c)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Устгах">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
           )}
         </div>
       ),
@@ -277,9 +282,11 @@ function CompaniesTab() {
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-gray-500">Нийт {companies.length} компани</p>
-        <Button icon={<Plus className="w-4 h-4" />} onClick={openCreate}>
-          Компани нэмэх
-        </Button>
+        {isSuperAdmin && (
+          <Button icon={<Plus className="w-4 h-4" />} onClick={openCreate}>
+            Компани нэмэх
+          </Button>
+        )}
       </div>
 
       <GlassPanel padding="none">
@@ -526,17 +533,19 @@ function CallTypesTab() {
       align: "right" as const,
       render: (ct) => (
         <div className="flex items-center justify-end gap-1">
-          <button onClick={() => openEdit(ct)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/5 transition-colors"
-            title="Засах">
-            <Pencil className="w-4 h-4" />
-          </button>
           {isSuperAdmin && (
-            <button onClick={() => setDeleteTarget(ct)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-              title="Устгах">
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <>
+              <button onClick={() => openEdit(ct)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/5 transition-colors"
+                title="Засах">
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button onClick={() => setDeleteTarget(ct)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Устгах">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
           )}
         </div>
       ),
@@ -547,9 +556,11 @@ function CallTypesTab() {
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-gray-500">Нийт {callTypes.length} төрөл</p>
-        <Button icon={<Plus className="w-4 h-4" />} onClick={openCreate}>
-          Дуудлагын төрөл нэмэх
-        </Button>
+        {isSuperAdmin && (
+          <Button icon={<Plus className="w-4 h-4" />} onClick={openCreate}>
+            Дуудлагын төрөл нэмэх
+          </Button>
+        )}
       </div>
 
       <GlassPanel padding="none">

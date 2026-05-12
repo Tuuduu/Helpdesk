@@ -50,26 +50,28 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Тухайн нэвтэрсэн хэрэглэгчийн компанийн идэвхтэй ажилтнуудын
-    /// тоймлогдсон жагсаалт. Шилжүүлгийн хүсэлт гэх мэт User-ийн ашигладаг
-    /// dropdown-уудад хэрэглэхээр зориулсан.
+    /// Тодорхой компанийн идэвхтэй ажилтнуудын тоймлогдсон жагсаалт.
+    /// Шилжүүлгийн хүсэлт гэх мэт User-ийн ашигладаг dropdown-уудад зориулагдсан.
+    /// companyId өгөхгүй бол одоо нэвтэрсэн хэрэглэгчийн компани руу буцаана.
     /// </summary>
     [HttpGet("colleagues")]
-    public async Task<IActionResult> GetColleagues()
+    public async Task<IActionResult> GetColleagues([FromQuery] Guid? companyId = null)
     {
-        var companyId = _currentUser.CompanyId;
-        if (!companyId.HasValue)
+        var targetCompanyId = companyId ?? _currentUser.CompanyId;
+        if (!targetCompanyId.HasValue)
             return Ok(ApiResponse<List<object>>.Ok(new List<object>()));
 
         var users = await _context.Users
-            .Where(u => u.CompanyId == companyId.Value && u.IsActive)
+            .Include(u => u.Department)
+            .Where(u => u.CompanyId == targetCompanyId.Value && u.IsActive)
             .OrderBy(u => u.FullName)
             .Select(u => new
             {
                 id = u.Id,
                 fullName = u.FullName,
                 position = u.Position,
-                companyId = u.CompanyId
+                companyId = u.CompanyId,
+                departmentName = u.Department != null ? u.Department.Name : null
             })
             .ToListAsync();
 
@@ -115,6 +117,16 @@ public class UsersController : ControllerBase
     {
         await _userService.HardDeleteAsync(id);
         return Ok(ApiResponse.Ok("Хэрэглэгч бүрмөсөн устгагдлаа"));
+    }
+
+    // Admin can reset any non-SuperAdmin user's password.
+    // SuperAdmin can reset anyone's password. Service enforces the SuperAdmin guard.
+    [HttpPost("{id:guid}/reset-password")]
+    [Authorize(Policy = Policies.AdminOrAbove)]
+    public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetUserPasswordRequest request)
+    {
+        await _userService.ResetPasswordAsync(id, request);
+        return Ok(ApiResponse.Ok("Нууц үг амжилттай шинэчлэгдлээ"));
     }
 
     [HttpGet("engineers")]

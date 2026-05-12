@@ -20,10 +20,11 @@ public class DepartmentsController : ControllerBase
     }
 
     /// <summary>
-    /// Хэлтсийн жагсаалт. Бүх authenticated хэрэглэгчид нээлттэй —
-    /// User register form, Computer create form-д dropdown болж ажиллана.
+    /// Хэлтсийн жагсаалт. Нийтэд нээлттэй — анхны бүртгүүлэлт, тикет
+    /// захиалах формд dropdown болж ажиллах боломжтой.
     /// </summary>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetList([FromQuery] Guid? companyId)
     {
         var result = await _service.GetListAsync(companyId);

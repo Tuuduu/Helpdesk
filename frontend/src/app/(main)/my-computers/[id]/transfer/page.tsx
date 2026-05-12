@@ -19,7 +19,6 @@ import type {
   CreateTransferRequestRequest,
   TransferRequestResponse,
 } from "@/types/computer";
-import type { PagedResult } from "@/types/api";
 
 interface CompanyOption {
   id: string;
@@ -71,22 +70,20 @@ export default function CreateTransferPage() {
     fetchData();
   }, [fetchData]);
 
-  // Load receiver candidates when target company changes
+  // Load receiver candidates when target company changes.
+  // Use /users/colleagues (any auth user) instead of /users (admin-only) so
+  // regular User role can browse cross-company recipients.
   useEffect(() => {
     if (!toCompanyId || !computer) {
       setUsers([]);
       return;
     }
     api
-      .get<PagedResult<UserOption>>("/users", {
-        companyId: toCompanyId,
-        pageSize: 200,
-        isActive: true,
-      })
+      .get<UserOption[]>("/users/colleagues", { companyId: toCompanyId })
       .then((res) => {
         if (res.success && res.data) {
           // Exclude current owner from receiver candidates
-          setUsers(res.data.items.filter((u) => u.id !== computer.ownerUserId));
+          setUsers(res.data.filter((u) => u.id !== computer.ownerUserId));
         } else {
           setUsers([]);
         }

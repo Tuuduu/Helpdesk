@@ -10,6 +10,7 @@ import {
   Monitor,
   Calendar,
   Save,
+  KeyRound,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -25,6 +26,7 @@ import {
   Badge,
   Spinner,
   ConfirmDialog,
+  Modal,
 } from "@/components/ui";
 import type { UserResponse, UpdateUserRequest } from "@/types/user";
 import toast from "react-hot-toast";
@@ -52,7 +54,7 @@ export default function UserDetailPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const { isSuperAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin } = useAuth();
 
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +73,7 @@ export default function UserDetailPage({
     role: "User" as UserRole,
     isActive: true,
     isGlobalApprover: false,
+    showOnLoginPage: false,
   });
   const [saveLoading, setSaveLoading] = useState(false);
 
@@ -81,6 +84,12 @@ export default function UserDetailPage({
   // Hard delete confirm
   const [hardDeleteOpen, setHardDeleteOpen] = useState(false);
   const [hardDeleteLoading, setHardDeleteLoading] = useState(false);
+
+  // Reset password modal
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
 
   const fetchUser = useCallback(async () => {
     const res = await api.get<UserResponse>(`/users/${params.id}`);
@@ -96,6 +105,7 @@ export default function UserDetailPage({
         role: res.data.role,
         isActive: res.data.isActive,
         isGlobalApprover: res.data.isGlobalApprover ?? false,
+        showOnLoginPage: res.data.showOnLoginPage ?? false,
       });
     }
     setLoading(false);
@@ -139,6 +149,10 @@ export default function UserDetailPage({
       role: form.role,
       isActive: form.isActive,
       isGlobalApprover: form.role === "Admin" ? form.isGlobalApprover : false,
+      showOnLoginPage:
+        form.role === "Admin" || form.role === "SuperAdmin"
+          ? form.showOnLoginPage
+          : false,
     };
     const res = await api.put<UserResponse>(`/users/${params.id}`, body);
     if (res.success && res.data) {
@@ -149,6 +163,30 @@ export default function UserDetailPage({
       toast.error(res.errors?.[0] || "Алдаа гарлаа");
     }
     setSaveLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (pwNew.length < 6) {
+      toast.error("Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой");
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      toast.error("Нууц үг тохирохгүй байна");
+      return;
+    }
+    setPwLoading(true);
+    const res = await api.post(`/users/${params.id}/reset-password`, {
+      newPassword: pwNew,
+    });
+    if (res.success) {
+      toast.success("Нууц үг амжилттай шинэчлэгдлээ");
+      setPwOpen(false);
+      setPwNew("");
+      setPwConfirm("");
+    } else {
+      toast.error(res.errors?.[0] || "Алдаа гарлаа");
+    }
+    setPwLoading(false);
   };
 
   const handleDeactivate = async () => {
@@ -256,6 +294,21 @@ export default function UserDetailPage({
               value={formatDateTime(user.createdAt)}
             />
           </div>
+
+          {/* Password reset: SuperAdmin can reset anyone; Admin can reset non-SuperAdmin only */}
+          {!editing && (isSuperAdmin || (isAdmin && user.role !== "SuperAdmin")) && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full"
+                icon={<KeyRound className="w-4 h-4" />}
+                onClick={() => setPwOpen(true)}
+              >
+                Нууц үг солих
+              </Button>
+            </div>
+          )}
 
           {isSuperAdmin && !editing && (
             <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
@@ -399,6 +452,28 @@ export default function UserDetailPage({
                     </div>
                   </label>
                 )}
+
+                {(form.role === "Admin" || form.role === "SuperAdmin") && (
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.showOnLoginPage}
+                      onChange={(e) =>
+                        setForm({ ...form, showOnLoginPage: e.target.checked })
+                      }
+                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <div>
+                      <span className="text-sm text-gray-700">
+                        Login хуудсанд утасны дуудлага хийдэг ажилтнаар харуулах
+                      </span>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Нэвтрэх хуудаснаас гадны хэрэглэгч энэ хүн рүү шууд
+                        утасдах боломжтой болно.
+                      </p>
+                    </div>
+                  </label>
+                )}
               </div>
 
               <div className="flex items-center gap-3 mt-6 pt-4 border-t border-gray-100">
@@ -424,6 +499,7 @@ export default function UserDetailPage({
                         role: user.role,
                         isActive: user.isActive,
                         isGlobalApprover: user.isGlobalApprover ?? false,
+                        showOnLoginPage: user.showOnLoginPage ?? false,
                       });
                     }
                   }}
@@ -487,6 +563,68 @@ export default function UserDetailPage({
         confirmLabel="Бүрмөсөн устгах"
         loading={hardDeleteLoading}
       />
+
+      <Modal
+        open={pwOpen}
+        onClose={() => {
+          setPwOpen(false);
+          setPwNew("");
+          setPwConfirm("");
+        }}
+        title="Нууц үг солих"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPwOpen(false);
+                setPwNew("");
+                setPwConfirm("");
+              }}
+              disabled={pwLoading}
+            >
+              Болих
+            </Button>
+            <Button
+              onClick={handleResetPassword}
+              loading={pwLoading}
+              disabled={!pwNew || !pwConfirm}
+            >
+              Хадгалах
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium text-gray-900">{user.fullName}</span>{" "}
+            хэрэглэгчийн нууц үгийг шинээр тогтоох. Хадгалсан даруйд тухайн
+            хэрэглэгчийн идэвхтэй session-ууд цуцлагдана.
+          </p>
+          <Input
+            label="Шинэ нууц үг"
+            type="password"
+            placeholder="••••••••"
+            value={pwNew}
+            onChange={(e) => setPwNew(e.target.value)}
+            helperText="Хамгийн багадаа 6 тэмдэгт"
+            required
+          />
+          <Input
+            label="Нууц үг давтах"
+            type="password"
+            placeholder="••••••••"
+            value={pwConfirm}
+            onChange={(e) => setPwConfirm(e.target.value)}
+            error={
+              pwConfirm && pwNew !== pwConfirm
+                ? "Нууц үг тохирохгүй байна"
+                : undefined
+            }
+            required
+          />
+        </div>
+      </Modal>
     </RoleGuard>
   );
 }

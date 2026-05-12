@@ -70,10 +70,17 @@ export function getImageUrl(
   ) {
     return relativeUrl;
   }
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/api";
-  const root = apiBase.replace(/\/api\/?$/, "");
-  return `${root}${relativeUrl.startsWith("/") ? "" : "/"}${relativeUrl}`;
+  // Default to a relative path so the URL works on any domain (same-origin via nginx).
+  // Only when NEXT_PUBLIC_API_URL is an absolute URL do we prepend its host.
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api";
+  const isAbsolute =
+    apiBase.startsWith("http://") || apiBase.startsWith("https://");
+  const slash = relativeUrl.startsWith("/") ? "" : "/";
+  if (isAbsolute) {
+    const root = apiBase.replace(/\/api\/?$/, "");
+    return `${root}${slash}${relativeUrl}`;
+  }
+  return `${slash}${relativeUrl}`;
 }
 
 /**

@@ -16,6 +16,7 @@ export interface UserResponse {
   avatarUrl?: string;
   isActive: boolean;
   isGlobalApprover: boolean;
+  showOnLoginPage: boolean;
   createdAt: string;
 }
 
@@ -42,6 +43,7 @@ export interface UpdateUserRequest {
   role?: UserRole;
   isActive?: boolean;
   isGlobalApprover?: boolean;
+  showOnLoginPage?: boolean;
 }
 
 export interface UserFilterRequest extends PagedRequest {

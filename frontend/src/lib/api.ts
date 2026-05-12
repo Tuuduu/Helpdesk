@@ -1,6 +1,8 @@
 import type { ApiResponse } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+// Default to a relative path so the frontend works on any domain (same-origin via nginx).
+// Set NEXT_PUBLIC_API_URL only when API runs on a different host (e.g. dev with split ports).
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 let accessToken: string | null = null;
 let isRefreshing = false;
@@ -21,15 +23,16 @@ function buildUrl(
   path: string,
   params?: Record<string, string | number | boolean | undefined>
 ): string {
-  const url = new URL(`${API_URL}${path}`);
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        url.searchParams.append(key, String(value));
-      }
-    });
-  }
-  return url.toString();
+  const base = `${API_URL}${path}`;
+  if (!params) return base;
+  const sp = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      sp.append(key, String(value));
+    }
+  });
+  const qs = sp.toString();
+  return qs ? `${base}?${qs}` : base;
 }
 
 async function refreshAccessToken(): Promise<string> {

@@ -2,6 +2,7 @@ using BishreltHelpdesk.Application.DTOs.Common;
 using BishreltHelpdesk.Application.DTOs.Users;
 using BishreltHelpdesk.Application.Interfaces;
 using BishreltHelpdesk.Domain.Entities;
+using BishreltHelpdesk.Domain.Enums;
 using BishreltHelpdesk.Domain.Exceptions;
 using BishreltHelpdesk.Domain.Interfaces;
 using BishreltHelpdesk.Domain.Interfaces.Repositories;
@@ -15,17 +16,20 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHashService _passwordHashService;
+    private readonly ICurrentUserService _currentUser;
     private readonly AppDbContext _context;
 
     public UserService(
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IPasswordHashService passwordHashService,
+        ICurrentUserService currentUser,
         AppDbContext context)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _passwordHashService = passwordHashService;
+        _currentUser = currentUser;
         _context = context;
     }
 
@@ -112,6 +116,7 @@ public class UserService : IUserService
                         AvatarUrl = u.AvatarUrl,
                         IsActive = u.IsActive,
                         IsGlobalApprover = u.IsGlobalApprover,
+                        ShowOnLoginPage = u.ShowOnLoginPage,
                         CreatedAt = u.CreatedAt
                     })
                     .ToList()
@@ -175,6 +180,7 @@ public class UserService : IUserService
         if (request.Role.HasValue) user.Role = request.Role.Value;
         if (request.IsActive.HasValue) user.IsActive = request.IsActive.Value;
         if (request.IsGlobalApprover.HasValue) user.IsGlobalApprover = request.IsGlobalApprover.Value;
+        if (request.ShowOnLoginPage.HasValue) user.ShowOnLoginPage = request.ShowOnLoginPage.Value;
 
         if (request.CompanyId.HasValue && request.CompanyId.Value != user.CompanyId)
         {
@@ -221,6 +227,30 @@ public class UserService : IUserService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task ResetPasswordAsync(Guid id, ResetUserPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+            throw new BadRequestException("Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой");
+
+        var target = await _userRepository.GetByIdAsync(id)
+            ?? throw new NotFoundException("Хэрэглэгч олдсонгүй");
+
+        // Admin cannot reset a SuperAdmin's password
+        if (_currentUser.Role == UserRole.Admin && target.Role == UserRole.SuperAdmin)
+            throw new ForbiddenException("Супер админ хэрэглэгчийн нууц үгийг солих эрх байхгүй");
+
+        target.PasswordHash = _passwordHashService.Hash(request.NewPassword);
+
+        // Revoke existing refresh tokens for the user so they must re-login
+        var tokens = await _context.RefreshTokens
+            .Where(t => t.UserId == target.Id && !t.IsRevoked)
+            .ToListAsync();
+        foreach (var t in tokens)
+            t.IsRevoked = true;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     private static UserResponse MapToResponse(User u)
     {
         return new UserResponse
@@ -239,6 +269,7 @@ public class UserService : IUserService
             AvatarUrl = u.AvatarUrl,
             IsActive = u.IsActive,
             IsGlobalApprover = u.IsGlobalApprover,
+            ShowOnLoginPage = u.ShowOnLoginPage,
             CreatedAt = u.CreatedAt
         };
     }

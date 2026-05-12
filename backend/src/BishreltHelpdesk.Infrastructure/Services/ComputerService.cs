@@ -197,7 +197,7 @@ public class ComputerService : IComputerService
     {
         var query = _computerRepository.QueryWithIncludes();
 
-        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.CompanyId.HasValue)
+        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.Role != UserRole.Admin && _currentUser.CompanyId.HasValue)
             query = query.Where(c => c.CompanyId == _currentUser.CompanyId.Value);
         else if (filter.CompanyId.HasValue)
             query = query.Where(c => c.CompanyId == filter.CompanyId.Value);
@@ -381,7 +381,7 @@ public class ComputerService : IComputerService
     {
         var query = _context.Computers.AsQueryable();
 
-        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.CompanyId.HasValue)
+        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.Role != UserRole.Admin && _currentUser.CompanyId.HasValue)
             query = query.Where(c => c.CompanyId == _currentUser.CompanyId.Value);
 
         var statusGroups = await query
@@ -404,7 +404,7 @@ public class ComputerService : IComputerService
         var thirtyDaysAgo = now.AddDays(-30);
         var transferQuery = _context.ComputerTransferHistories
             .Where(h => h.TransferredAt >= thirtyDaysAgo);
-        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.CompanyId.HasValue)
+        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.Role != UserRole.Admin && _currentUser.CompanyId.HasValue)
             transferQuery = transferQuery.Where(h => h.Computer.CompanyId == _currentUser.CompanyId.Value);
         var transfersLast30 = await transferQuery.CountAsync();
 
@@ -542,7 +542,7 @@ public class ComputerService : IComputerService
             .Include(c => c.Accessories)
             .AsQueryable();
 
-        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.CompanyId.HasValue)
+        if (_currentUser.Role != UserRole.SuperAdmin && _currentUser.Role != UserRole.Admin && _currentUser.CompanyId.HasValue)
             query = query.Where(c => c.CompanyId == _currentUser.CompanyId.Value);
         else if (filter.CompanyId.HasValue)
             query = query.Where(c => c.CompanyId == filter.CompanyId.Value);
@@ -669,8 +669,9 @@ public class ComputerService : IComputerService
     private void EnsureCanRead(Computer computer)
     {
         if (_currentUser.Role == UserRole.SuperAdmin) return;
+        if (_currentUser.Role == UserRole.Admin) return;
 
-        if (_currentUser.Role == UserRole.Admin || _currentUser.Role == UserRole.ITStorekeeper)
+        if (_currentUser.Role == UserRole.ITStorekeeper)
         {
             if (_currentUser.CompanyId == computer.CompanyId) return;
             throw new ForbiddenException("Энэ компьютерт хандах эрхгүй байна");

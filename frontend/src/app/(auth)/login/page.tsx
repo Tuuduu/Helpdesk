@@ -7,8 +7,11 @@ import { api } from "@/lib/api";
 import { getDefaultPathForRole } from "@/lib/utils";
 import { GlassPanel, Button, Input, Select, Textarea } from "@/components/ui";
 import { Logo } from "@/components/layout/Logo";
+import { LoginContacts } from "@/components/login/LoginContacts";
+import { LoginAnnouncements } from "@/components/login/LoginAnnouncements";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import type { PublicAnnouncement } from "@/types/announcement";
 
 interface CompanyOption { id: string; name: string; }
 interface CallTypeOption { value: string; label: string; defaultPriority: string; }
@@ -18,7 +21,8 @@ type Tab = "login" | "ticket";
 
 export default function LoginPage() {
   const { login, isAuthenticated, role } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>("login");
+  const [activeTab, setActiveTab] = useState<Tab>("ticket");
+  const [announcements, setAnnouncements] = useState<PublicAnnouncement[]>([]);
 
   useEffect(() => {
     if (isAuthenticated && role) {
@@ -26,48 +30,74 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, role]);
 
+  useEffect(() => {
+    api.get<PublicAnnouncement[]>("/public/announcements").then((res) => {
+      if (res.success && res.data) setAnnouncements(res.data);
+    });
+  }, []);
+
   if (isAuthenticated) {
     return null;
   }
 
+  const hasAnnouncements = announcements.length > 0;
+
   return (
-    <GlassPanel variant="elevated" padding="lg" className="w-full">
-      <div className="flex justify-center mb-5">
-        <Logo variant="full" theme="light" />
-      </div>
+    <>
+      <div
+        className={
+          hasAnnouncements
+            ? "grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto items-start"
+            : "max-w-lg mx-auto w-full"
+        }
+      >
+        {hasAnnouncements && (
+          <div className="w-full md:sticky md:top-6">
+            <LoginAnnouncements items={announcements} />
+          </div>
+        )}
+        <div className={hasAnnouncements ? "w-full max-w-lg md:ml-auto" : "w-full"}>
+          <GlassPanel variant="elevated" padding="lg" className="w-full">
+            <div className="flex justify-center mb-5">
+              <Logo variant="full" theme="light" />
+            </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
-        <button
-          type="button"
-          onClick={() => setActiveTab("login")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "login"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Нэвтрэх
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("ticket")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "ticket"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Тикет захиалах
-        </button>
-      </div>
+            {/* Tabs */}
+            <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setActiveTab("ticket")}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === "ticket"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Тикет захиалах
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("login")}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === "login"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Нэвтрэх
+              </button>
+            </div>
 
-      {activeTab === "login" ? (
-        <LoginForm login={login} />
-      ) : (
-        <PublicTicketForm />
-      )}
-    </GlassPanel>
+            {activeTab === "login" ? (
+              <LoginForm login={login} />
+            ) : (
+              <PublicTicketForm />
+            )}
+          </GlassPanel>
+        </div>
+      </div>
+      <LoginContacts />
+    </>
   );
 }
 
